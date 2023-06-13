@@ -4,6 +4,10 @@
 
 <br/>
 
+
+https://github.com/autonomousvision/carla_garage/assets/22528226/ad0b8fbb-93aa-45f5-9ceb-0a44050a163f
+
+
 <br/>
 
 > [**Hidden Biases of End-to-End Driving Models**](https://arxiv.org/abs/)
