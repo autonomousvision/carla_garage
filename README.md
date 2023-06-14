@@ -6,6 +6,10 @@
 
 <br/>
 
+> This repo is intended to serve as a starting point for end-to-end autonomous driving research on [CARLA](https://github.com/carla-simulator/carla). We will provide a set of baselines and pre-trained models.
+
+<br/>
+
 
 
 https://github.com/autonomousvision/carla_garage/assets/22528226/fb10cf21-5e70-4bb2-a917-893d71804350
@@ -27,7 +31,6 @@ https://github.com/autonomousvision/carla_garage/assets/22528226/fb10cf21-5e70-4
 
 
 ## Overview
-> This repo is intended to serve as a starting point for end-to-end autonomous driving research on [CARLA](https://github.com/carla-simulator/carla). We will provide a set of baselines and pre-trained models.
 
 - End-to-end driving systems have recently made rapid progress, in particular on CARLA.
 
