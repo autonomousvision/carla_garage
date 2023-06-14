@@ -5,7 +5,9 @@
 <br/>
 
 
-https://github.com/autonomousvision/carla_garage/assets/22528226/ad0b8fbb-93aa-45f5-9ceb-0a44050a163f
+
+https://github.com/autonomousvision/carla_garage/assets/22528226/fb10cf21-5e70-4bb2-a917-893d71804350
+
 
 
 <br/>
