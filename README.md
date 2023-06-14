@@ -1,6 +1,6 @@
 # CARLA Garage
 
-## [Paper]() | [Video]() | [Talk]() | [Slides]()
+## [Paper](https://arxiv.org/pdf/2306.07957.pdf) | Video | Talk | Slides
 
 <br/>
 
@@ -10,7 +10,7 @@ https://github.com/autonomousvision/carla_garage/assets/22528226/ad0b8fbb-93aa-4
 
 <br/>
 
-> [**Hidden Biases of End-to-End Driving Models**](https://arxiv.org/abs/)
+> [**Hidden Biases of End-to-End Driving Models**](https://arxiv.org/abs/2306.07957)
 >
 > [Bernhard Jaeger](https://kait0.github.io/), [Kashyap Chitta](https://kashyap7x.github.io/), and [Andreas Geiger](https://www.cvlibs.net/)
 > 
@@ -19,7 +19,7 @@ https://github.com/autonomousvision/carla_garage/assets/22528226/ad0b8fbb-93aa-4
 
 
 ## News
-* **`14 Jun, 2023`:** We released our paper on [Arxiv](https://arxiv.org/abs/). Code and models are coming soon, please stay tuned!
+* **`14 Jun, 2023`:** We released our paper on [arXiv](https://arxiv.org/abs/2306.07957). Code and models are coming soon, please stay tuned!
 
 
 ## Overview
@@ -85,7 +85,7 @@ If you find CARLA garage useful, please consider giving us a star &#127775; and 
   title={Hidden Biases of End-to-End Driving Models},
   author={Jaeger, Bernhard and Chitta, Kashyap and Geiger, Andreas},
   journal={arXiv},
-  volume={},
+  volume={2306.07957},
   year={2023}
 }
 ```
