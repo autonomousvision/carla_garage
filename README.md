@@ -1,6 +1,8 @@
 # CARLA Garage
 
-## [Paper](https://arxiv.org/pdf/2306.07957.pdf) | Video | Talk | Slides
+[![Paper page](https://huggingface.co/datasets/huggingface/badges/raw/main/paper-page-sm.svg)](https://huggingface.co/papers/2306.07957)
+
+## [PDF](https://arxiv.org/pdf/2306.07957.pdf) | Video | Talk | Slides
 
 <br/>
 
