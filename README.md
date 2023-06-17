@@ -8,8 +8,15 @@
 
 > This repo is intended to serve as a starting point for end-to-end autonomous driving research on [CARLA](https://github.com/carla-simulator/carla). We will provide a set of baselines and pre-trained models.
 
-<br/>
-
+## To Do
+- [ ] Dataset
+- [ ] Documentation
+- [ ] Pre-trained models
+- [ ] Training code
+- [ ] Data collection code
+- [ ] Additional scripts
+- [x] Inference code
+- [x] Initial repo & paper
 
 
 https://github.com/autonomousvision/carla_garage/assets/22528226/fb10cf21-5e70-4bb2-a917-893d71804350
@@ -73,13 +80,6 @@ Performance on validation towns (LAV, reproduced models).
 | *Expert*         | *94*       | *95*       | *0.99*        | *0.00*        | *0.02*      | *0.00*     | *0.02*     | *0.00*     | *0.00*      | *0.00*      | *0.08*      |
 
 
-## To Do
-- [ ] Additional baselines
-- [ ] Dataset and pre-trained models
-- [ ] Initial code release (~18.06.23)
-- [x] Initial repo & paper
-
-
 ## Contact
 If you have any questions or suggestions, please feel free to open an issue or contact us (bernhard.jaeger@uni-tuebingen.de).
 
@@ -99,4 +99,13 @@ If you find CARLA garage useful, please consider giving us a star &#127775; and 
 
 
 ## Acknowledgements
-CARLA garage includes code from the following projects: [transfuser](https://github.com/autonomousvision/transfuser). Thanks to the community for these great open-source contributions!
+CARLA garage includes code from the following projects:
+* [transfuser](https://github.com/autonomousvision/transfuser)
+* [interfuser](https://github.com/opendilab/InterFuser)
+* [simple_bev](https://github.com/aharley/simple_bev)
+* [roach](https://github.com/zhejz/carla-roach/)
+* [plant](https://github.com/autonomousvision/plant)
+* [WOR](https://github.com/dotchen/WorldOnRails)
+* [tcp](https://github.com/OpenDriveLab/TCP)
+
+Thanks to the community for these great open-source contributions!
