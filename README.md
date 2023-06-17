@@ -11,7 +11,7 @@
 ## To Do
 - [ ] Dataset
 - [ ] Documentation
-- [ ] Pre-trained models
+- [x] Pre-trained models
 - [ ] Training code
 - [ ] Data collection code
 - [ ] Additional scripts
@@ -79,6 +79,23 @@ Performance on validation towns (LAV, reproduced models).
 | TF++ (ours)      | **70** | **99** | **0.70**| 0.01          | 0.63        | **0.01**   | 0.04       | **0.26**    | **0.00**    | **0.05**    | **0.00**    |
 | *Expert*         | *94*       | *95*       | *0.99*        | *0.00*        | *0.02*      | *0.00*     | *0.02*     | *0.00*     | *0.00*      | *0.00*      | *0.08*      |
 
+## Pre-Trained Models
+We provide a set of pretrained models [here](https://drive.google.com/file/d/1dDeeRrPL7UAqqHn4RMdg3DrvHSlNgzmE/view?usp=sharing).
+These are the final model weights used in the paper, the folder indicates the benchmark.
+For the training and validation towns, we provide 3 models which correspond to 3 different training seeds.
+
+To evaluate a model you can use [leaderboard_evaluator_local.py](leaderboard/leaderboard/leaderboard_evaluator_local.py).
+
+Set the `--agent-config` option to a folder containing a `config.pickle` and `model_0030.pth`. <br>
+Set the `--agent_file` to [sensor_agent.py](team_code/sensor_agent.py). <br>
+To evaluate set the environment variable `export BENCHMARK=lav` or `export BENCHMARK=longest6`. <br>
+The `--routes` option should be set to [lav.xml](leaderboard/data/lav.xml) or [longest6.xml](leaderboard/data/longest6.xml). <br>
+The `--scenarios ` option should be set to [eval_scenarios.json](leaderboard/data/scenarios/eval_scenarios.json) for both benchmarks.<br>
+We will provide scripts for evaluation at a later point.
+
+Models have inference options that can be set via environment variables.
+For the longest6 model you need to set `export UNCERTAINTY_THRESHOLD=0.33`, for the LAV model `export STOP_CONTROL=1` and for the leaderboard model `export DIRECT=0`.
+Other options are correctly set by default.
 
 ## Contact
 If you have any questions or suggestions, please feel free to open an issue or contact us (bernhard.jaeger@uni-tuebingen.de).
