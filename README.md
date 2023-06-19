@@ -12,8 +12,8 @@
 - [ ] Dataset
 - [ ] Documentation
 - [x] Pre-trained models
-- [ ] Training code
-- [ ] Data collection code
+- [x] Training code
+- [x] Data collection code
 - [ ] Additional scripts
 - [x] Inference code
 - [x] Initial repo & paper
