@@ -130,7 +130,7 @@ class GlobalConfig:
     # Is relative to lidar_pos[2]
     self.lidar_split_height = 0.2
     self.realign_lidar = True
-    self.use_ground_plane = True
+    self.use_ground_plane = False
     # Max and minimum LiDAR ranges used for voxelization
     self.min_x = -32
     self.max_x = 32
@@ -168,9 +168,9 @@ class GlobalConfig:
     # -----------------------------------------------------------------------------
     self.local_rank = -999
     self.id = 'transfuser'  # Unique experiment identifier.
-    self.epochs = 41  # Number of epochs to train
+    self.epochs = 31  # Number of epochs to train
     self.lr = 1e-4  # Learning rate used for training
-    self.batch_size = 12  # Batch size used during training
+    self.batch_size = 32  # Batch size used during training
     self.logdir = ''  # Directory to log data to.
     self.load_file = None  # File to continue training from
     self.setting = 'all'  # Setting used for training
@@ -179,35 +179,34 @@ class GlobalConfig:
     self.schedule_reduce_epoch_01 = 30
     self.schedule_reduce_epoch_02 = 40
     self.parallel_training = 1  # Whether training was done in parallel
-    self.val_every = 5  # Validation frequency in epochs
+    self.val_every = 2  # Validation frequency in epochs
     self.sync_batch_norm = 0  # Whether batch norm was synchronized between GPUs
     # Whether zero_redundancy_optimizer was used during training
-    self.zero_redundancy_optimizer = 0
+    self.zero_redundancy_optimizer = 1
     self.use_disk_cache = 0  # Whether disc cache was used during training
     self.detect_boxes = 1  # Whether to use the bounding box auxiliary task
     self.train_sampling_rate = 1  # We train on every n th sample on the route
     # Number of route points we use for prediction in TF or input in planT
     self.num_route_points = 20
     self.augment_percentage = 0.5  # Probability of the augmented sample being used.
-    self.learn_origin = 0  # Whether to learn the origin of the waypoints or use 0.0
-    self.augment = 0  # Whether to use rotation and translation augmentation
+    self.learn_origin = 1  # Whether to learn the origin of the waypoints or use 0 / 0
+    self.augment = 1  # Whether to use rotation and translation augmentation
     # If this is true we convert the batch norms, to synced bach norms.
     self.sync_batch_norm = False
     # At which interval to save debug files to disk during training
     self.train_debug_save_freq = 1
     self.backbone = 'transFuser'  # Vision backbone architecture used
-    self.use_velocity = 0  # Whether to use the velocity as input to the network
+    self.use_velocity = 1  # Whether to use the velocity as input to the network
     self.image_architecture = 'regnety_032'  # Image architecture used in the backbone
     self.lidar_architecture = 'regnety_032'  # LiDAR architecture used in the backbone
-    self.use_second_tp = False  # Whether to input the next 2 target points.
-    # Whether the control input prediction heads are part of the model
-    self.use_controller_input_prediction = False
+    # Whether to classify target speeds and regress a path as output representation.
+    self.use_controller_input_prediction = True
     # Whether to use the direct control predictions for driving
     self.inference_direct_controller = False
     # Label smoothing applied to the cross entropy losses
     self.label_smoothing_alpha = 0.1
     # Optimization
-    self.lr = 1e-4  # learning rate
+    self.lr = 0.0003  # learning rate
     # Whether to use focal loss instead of cross entropy for classification
     self.use_focal_loss = False
     # Gamma hyperparameter of focal loss
@@ -245,7 +244,7 @@ class GlobalConfig:
     self.val_data = []
     # NOTE currently leads to inf gradients do not use! Whether to use automatic mixed precision during training.
     self.use_amp = 0
-    self.use_grad_clip = 1  # Whether to clip the gradients
+    self.use_grad_clip = 0  # Whether to clip the gradients
     self.grad_clip_max_norm = 1.0  # Max value for the gradients if gradient clipping is used.
     self.use_color_aug = 1  # Whether to apply image color based augmentations
     self.color_aug_prob = 0.5  # With which probability to apply the different image color augmentations.
@@ -257,16 +256,14 @@ class GlobalConfig:
     self.use_depth = True  # Whether to use depth prediction as auxiliary loss for training.
     self.num_repetitions = 3  # How many repetitions of the dataset we train with.
     self.continue_epoch = True  # Whether to continue the training from the loaded epoch or from 0.
-    # Whether to the GRU when using direct mode. If false only target speed will be trained.
-    self.train_checkpoint = True
 
-    self.smooth_route = False  # Whether to smooth the route points with a spline.
+    self.smooth_route = True  # Whether to smooth the route points with a spline.
     self.ignore_index = -999  # Index to ignore for future bounding box prediction task.
     self.use_speed_weights = True  # Whether to weight target speed classes
     self.use_optim_groups = False  # Whether to use optimizer groups to exclude some parameters from weight decay
     self.weight_decay = 0.01  # Weight decay coefficient used during training
     self.use_plant_labels = False  # Whether to use the relabeling from plant or the original labels
-    self.use_label_smoothing = True  # Whether to use label smoothing in the classification losses
+    self.use_label_smoothing = False  # Whether to use label smoothing in the classification losses
 
     # -----------------------------------------------------------------------------
     # PID controller
@@ -352,7 +349,7 @@ class GlobalConfig:
 
     # GPT Encoder
     self.block_exp = 4
-    self.n_layer = 4  # Number of transformer layers used in the vision backbone
+    self.n_layer = 2  # Number of transformer layers used in the vision backbone
     self.n_head = 4
     self.n_scale = 4
     self.embd_pdrop = 0.1
@@ -370,7 +367,7 @@ class GlobalConfig:
 
     # Whether to normalize the camera image by the imagenet distribution
     self.normalize_imagenet = True
-    self.use_wp_gru = True  # Whether to use the WP output GRU.
+    self.use_wp_gru = False  # Whether to use the WP output GRU.
 
     # Semantic Segmentation
     self.use_semantic = True  # Whether to use semantic segmentation as auxiliary loss
@@ -460,14 +457,14 @@ class GlobalConfig:
     # Fraction of the down-sampling factor that will be up-sampled in the second Up-sample
     self.deconv_scale_factor_1 = 8
 
-    self.use_discrete_command = False  # Whether to input the discrete target point as input to the network.
+    self.use_discrete_command = True  # Whether to input the discrete target point as input to the network.
     self.add_features = True  # Whether to add (true) or concatenate (false) the features at the end of the backbone.
 
     self.image_u_net_output_features = 512  # Channel dimension of the up-sampled encoded image in bev_encoder
     self.bev_latent_dim = 32  # Channel dimensions of the image projected to BEV in the bev_encoder
 
     # Whether to use a transformer decoder instead of global average pool + MLP for planning
-    self.transformer_decoder_join = False
+    self.transformer_decoder_join = True
     self.num_transformer_decoder_layers = 6  # Number of layers in the TransFormer decoder
     self.num_decoder_heads = 8
 

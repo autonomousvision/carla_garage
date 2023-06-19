@@ -130,7 +130,7 @@ class PlanTAgent(DataAgent):
       route = np.array(route[:self.config.num_route_points])
 
     if self.config.smooth_route:
-      route = self.data.smooth_path(route, '')
+      route = self.data.smooth_path(route)
     route = torch.tensor(route, dtype=torch.float32)[:self.config.num_route_points].to(self.device).unsqueeze(0)
 
     light_hazard = torch.tensor(tick_data['light_hazard'], dtype=torch.int32).to(self.device).unsqueeze(0).unsqueeze(0)
@@ -172,10 +172,7 @@ class PlanTAgent(DataAgent):
       pred_bbs.append(t_u.plant_quant_to_box(self.config, pred_bb))
       if self.config.use_controller_input_prediction:
         pred_target_speeds.append(F.softmax(pred_target_speed[0], dim=0))
-        if self.config.train_checkpoint:
-          pred_checkpoints.append(pred_checkpoint[0][1])
-        else:
-          pred_checkpoints.append(route[0][1])
+        pred_checkpoints.append(pred_checkpoint[0][1])
 
     if self.config.use_wp_gru:
       self.pred_wp = torch.stack(pred_wps, dim=0).mean(dim=0)

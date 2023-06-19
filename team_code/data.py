@@ -417,9 +417,8 @@ class CARLA_Data(Dataset):  # pylint: disable=locally-disabled, invalid-name
             # LiDAR is hard to compress so we use a special purpose format.
             header = laspy.LasHeader(point_format=self.config.point_format)
             header.offsets = np.min(lidars_i, axis=0)
-            header.scales = np.array([self.config.point_precision,
-                                      self.config.point_precision,
-                                      self.config.point_precision])
+            header.scales = np.array(
+                [self.config.point_precision, self.config.point_precision, self.config.point_precision])
             compressed_lidar_i = io.BytesIO()
             with laspy.open(compressed_lidar_i, mode='w', header=header, do_compress=True, closefd=False) as writer:
               point_record = laspy.ScaleAwarePointRecord.zeros(lidars_i.shape[0], header=header)
@@ -509,8 +508,8 @@ class CARLA_Data(Dataset):  # pylint: disable=locally-disabled, invalid-name
 
       # The indexing is an elegant way to down-sample the semantic images without interpolation or changing the dtype
       if self.config.use_semantic:
-        data['semantic'] = semantics_i[::self.config.perspective_downsample_factor,
-                                       ::self.config.perspective_downsample_factor]
+        data['semantic'] = semantics_i[::self.config.perspective_downsample_factor, ::self.config.
+                                       perspective_downsample_factor]
       if self.config.use_bev_semantic:
         data['bev_semantic'] = bev_semantics_i
       if self.config.use_depth:
@@ -689,11 +688,6 @@ class CARLA_Data(Dataset):  # pylint: disable=locally-disabled, invalid-name
                                              y_augmentation=aug_translation,
                                              yaw_augmentation=aug_rotation)
     data['target_point'] = target_point
-    target_point_next = np.array(current_measurement['target_point_next'])
-    target_point_next = self.augment_target_point(target_point_next,
-                                                  y_augmentation=aug_translation,
-                                                  yaw_augmentation=aug_rotation)
-    data['target_point_next'] = target_point_next
 
     aim_wp = np.array(current_measurement['aim_wp'])
     aim_wp = self.augment_target_point(aim_wp, y_augmentation=aug_translation, yaw_augmentation=aug_rotation)
@@ -886,11 +880,9 @@ class CARLA_Data(Dataset):  # pylint: disable=locally-disabled, invalid-name
 
     def splat_points(point_cloud):
       # 256 x 256 grid
-      xbins = np.linspace(self.config.min_x,
-                          self.config.max_x,
+      xbins = np.linspace(self.config.min_x, self.config.max_x,
                           (self.config.max_x - self.config.min_x) * int(self.config.pixels_per_meter) + 1)
-      ybins = np.linspace(self.config.min_y,
-                          self.config.max_y,
+      ybins = np.linspace(self.config.min_y, self.config.max_y,
                           (self.config.max_y - self.config.min_y) * int(self.config.pixels_per_meter) + 1)
       hist = np.histogramdd(point_cloud[:, :2], bins=(xbins, ybins))[0]
       hist[hist > self.config.hist_max_per_pixel] = self.config.hist_max_per_pixel
