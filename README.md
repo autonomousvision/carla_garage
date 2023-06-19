@@ -117,12 +117,14 @@ If you find CARLA garage useful, please consider giving us a star &#127775; and 
 
 ## Acknowledgements
 CARLA garage includes code from the following projects:
+* [simple_bev](https://github.com/aharley/simple_bev)
 * [transfuser](https://github.com/autonomousvision/transfuser)
 * [interfuser](https://github.com/opendilab/InterFuser)
-* [simple_bev](https://github.com/aharley/simple_bev)
+* [mmdet](https://github.com/open-mmlab/mmdetection)
 * [roach](https://github.com/zhejz/carla-roach/)
 * [plant](https://github.com/autonomousvision/plant)
-* [WOR](https://github.com/dotchen/WorldOnRails)
+* [king](https://github.com/autonomousvision/king)
+* [wor](https://github.com/dotchen/WorldOnRails)
 * [tcp](https://github.com/OpenDriveLab/TCP)
 
 Thanks to the community for these great open-source contributions!
