@@ -126,5 +126,6 @@ CARLA garage includes code from the following projects:
 * [king](https://github.com/autonomousvision/king)
 * [wor](https://github.com/dotchen/WorldOnRails)
 * [tcp](https://github.com/OpenDriveLab/TCP)
+* [lbc](https://github.com/dotchen/LearningByCheating)
 
 Thanks to the community for these great open-source contributions!
