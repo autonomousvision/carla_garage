@@ -14,7 +14,7 @@
 - [x] Pre-trained models
 - [x] Training code
 - [x] Data collection code
-- [ ] Additional scripts
+- [x] Additional scripts
 - [x] Inference code
 - [x] Initial repo & paper
 
