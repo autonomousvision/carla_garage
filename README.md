@@ -32,6 +32,7 @@
 1. [Setup](#setup)
 2. [Pre-Trained Models](#pre-trained-models)
 3. [Evaluation](#evaluation)
+4. [Data generation](#data-generation)
 
 ## Setup
 
@@ -96,6 +97,17 @@ Afterward, you can run the feature by using the `--visualize_infractions` flag i
 ### How to actually evaluate
 The instructions above are what you will be using to debug the code. Actually evaluating challenging benchmarks such as longest6, that have over 108 long routes, is very slow in practice. Luckily, CARLA evaluations are [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel). Each of the 108 routes can be evaluated independently in parallel. That means if you have 2 GPUs you can evaluate 2x faster, if you have 108 GPUs you can evaluate 108x faster. While using the same amount of overall compute. To do that, you need access to a scalable cluster system and some scripts to parallelize. We are using [SLURM](https://slurm.schedmd.com/overview.html) at our institute. To evaluate a model, we are using the script [evaluate_routes_slurm.py](evaluate_routes_slurm.py). It is intended to be run inside a tmux on an interactive node and will spawn evaluation jobs (up till the number set in [max_num_jobs.txt](max_num_jobs.txt)). It also monitors the jobs and resubmits jobs where it detected a crash. In the end, the script will run the result parser to aggregate the results. If you are using a different system, you can use this as guidance and write your own script. The CARLA leaderboard benchmarks are the most challenging in the driving scene right now, but if you don't have access to multiple GPUs you might want to use simulators that are less compute intensive for your research. NuPlan is a good option, and our group also provides [strong baselines for nuPlan](https://github.com/autonomousvision/nuplan_garage).
 
+## Data Generation
+Dataset generation is similar to evaluation. You can generate a dataset by changing the `--agent_file` option to [data_agent.py](team_code/data_agent.py) and the `--track` option to `MAP`. In addition, you need to set the following environment flags:
+```Shell
+export COMPLETION_PERCENT=85
+export DATAGEN=1
+export BENCHMARK=collection
+export CHECKPOINT_ENDPOINT=/path/to/dataset/Routes_{route}_Repetition{repetition}/Dataset_generation_{route}_Repetition{repetition}.json
+export SAVE_PATH=/path/to/dataset/Routes_{route}_Repetition{repetition}
+```
+Again it is too slow to generate our dataset with a single computer, you should be using multiple GPUs. We provide a [python script](generate_dataset_slurm.py) for SLURM clusters, it works in the same fashion as the evaluation script.
+We will release the dataset we used at a later point.
 
 ## Contact
 If you have any questions or suggestions, please feel free to open an issue or contact us at bernhard.jaeger@uni-tuebingen.de.
@@ -116,7 +128,7 @@ If you find CARLA garage useful, please consider giving us a star &#127775; and 
 
 
 ## Acknowledgements
-Opensource code like this is build on the shoulders on the shoulders of many other opensource repositories.
+Open source code like this is build on the shoulders of many other open source repositories.
 In particularly we would like to thank the following repositories for their contributions:
 * [simple_bev](https://github.com/aharley/simple_bev)
 * [transfuser](https://github.com/autonomousvision/transfuser)

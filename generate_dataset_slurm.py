@@ -102,7 +102,6 @@ export DEBUG_CHALLENGE=0 # visualization of waypoints and forecasting
 export RESUME=1
 export REPETITIONS=1
 export COMPLETION_PERCENT=85
-export SHUFFLE_WEATHER=1
 export DATAGEN=1
 export BENCHMARK=collection
 export GPU={str(gpu)}
