@@ -71,7 +71,7 @@ To evaluate a model, you should run [leaderboard_evaluator_local.py](leaderboard
 It is a modified version of the original leaderboard_evaluator.py which has the configurations used in the benchmarks we consider and additionally provides extra logging functionality.
 
 Set the `--agent-config` option to a folder containing a `config.pickle` and `model_0030.pth`. <br>
-Set the `--agent_file` to [sensor_agent.py](team_code/sensor_agent.py). <br>
+Set the `--agent` to [sensor_agent.py](team_code/sensor_agent.py). <br>
 The `--routes` option should be set to [lav.xml](leaderboard/data/lav.xml) or [longest6.xml](leaderboard/data/longest6.xml). <br>
 The `--scenarios ` option should be set to [eval_scenarios.json](leaderboard/data/scenarios/eval_scenarios.json) for both benchmarks. <br>
 Set `--checkpoint ` to `/path/to/results/result.json`
@@ -98,7 +98,7 @@ Afterward, you can run the feature by using the `--visualize_infractions` flag i
 The instructions above are what you will be using to debug the code. Actually evaluating challenging benchmarks such as longest6, that have over 108 long routes, is very slow in practice. Luckily, CARLA evaluations are [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel). Each of the 108 routes can be evaluated independently in parallel. That means if you have 2 GPUs you can evaluate 2x faster, if you have 108 GPUs you can evaluate 108x faster. While using the same amount of overall compute. To do that, you need access to a scalable cluster system and some scripts to parallelize. We are using [SLURM](https://slurm.schedmd.com/overview.html) at our institute. To evaluate a model, we are using the script [evaluate_routes_slurm.py](evaluate_routes_slurm.py). It is intended to be run inside a tmux on an interactive node and will spawn evaluation jobs (up till the number set in [max_num_jobs.txt](max_num_jobs.txt)). It also monitors the jobs and resubmits jobs where it detected a crash. In the end, the script will run the result parser to aggregate the results. If you are using a different system, you can use this as guidance and write your own script. The CARLA leaderboard benchmarks are the most challenging in the driving scene right now, but if you don't have access to multiple GPUs you might want to use simulators that are less compute intensive for your research. NuPlan is a good option, and our group also provides [strong baselines for nuPlan](https://github.com/autonomousvision/nuplan_garage).
 
 ## Data Generation
-Dataset generation is similar to evaluation. You can generate a dataset by changing the `--agent_file` option to [data_agent.py](team_code/data_agent.py) and the `--track` option to `MAP`. In addition, you need to set the following environment flags:
+Dataset generation is similar to evaluation. You can generate a dataset by changing the `--agent` option to [data_agent.py](team_code/data_agent.py) and the `--track` option to `MAP`. In addition, you need to set the following environment flags:
 ```Shell
 export COMPLETION_PERCENT=85
 export DATAGEN=1
