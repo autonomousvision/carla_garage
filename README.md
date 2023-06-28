@@ -33,6 +33,8 @@
 2. [Pre-Trained Models](#pre-trained-models)
 3. [Evaluation](#evaluation)
 4. [Data generation](#data-generation)
+5. [Training](#training)
+6. [Citation](#Citation)
 
 ## Setup
 
@@ -67,7 +69,12 @@ For the training and validation towns, we provide 3 models which correspond to 3
 
 ## Evaluation
 
-To evaluate a model, you should run [leaderboard_evaluator_local.py](leaderboard/leaderboard/leaderboard_evaluator_local.py) as the main python file.
+To evaluate a model, you need to start a CARLA server:
+```Shell
+cd /path/to/CARLA/root
+./CarlaUE4.sh -opengl
+```
+Afterward, run [leaderboard_evaluator_local.py](leaderboard/leaderboard/leaderboard_evaluator_local.py) as the main python file.
 It is a modified version of the original leaderboard_evaluator.py which has the configurations used in the benchmarks we consider and additionally provides extra logging functionality.
 
 Set the `--agent-config` option to a folder containing a `config.pickle` and `model_0030.pth`. <br>
@@ -108,6 +115,45 @@ export SAVE_PATH=/path/to/dataset/Routes_{route}_Repetition{repetition}
 ```
 Again it is too slow to generate our dataset with a single computer, you should be using multiple GPUs. We provide a [python script](generate_dataset_slurm.py) for SLURM clusters, it works in the same fashion as the evaluation script.
 We will release the dataset we used at a later point.
+
+## Training
+Agents are trained via the file [train.py](team_code/train.py).
+Examples how to use it are provided for [shell](team_code/shell_train.sh) and [SLURM](team_code/slurm_train.sh).
+You need to activate garage conda environment before running it.
+It first sets the relevant environment variables and then launches the training with torchrun.
+Torchrun is a pytorch tool that handles multi-gpu training.
+If you want to debug on a single gpu simply set `--nproc_per_node=1`.
+The training script has many options to configure your training you can list them with `python train.py --help` or look through the code.
+The most important once are: 
+```Shell
+--id # Name of your experiment
+--batch_size # Batch size per GPU
+--setting # Which towns to withhold during training. Use 'all' for leaderboard, longest6 and '02_05_withheld' for LAV models.
+--root_dir # Path to the root_dir of your dataset
+--logdir # Root dir where the training files will be stored
+--use_controller_input_prediction 1 # Whether your model trains with a classification + path prediction head
+--use_wp_gru 0 # Whether you model trains with a waypoint head.
+--use_discrete_command 1 # Whether to use the navigational command as input to the model
+--use_tp 1  # Whether to use the target point as input to your model
+--cpu_cores 20 # Total number of cpu cores on your machine
+--num_repetitions 3 # How much data to train on (Options are 1,2,3). 1x corresponds to 185k in Table 5, 3x corresponds to 555k
+```
+Additionally, to do the two stage training from Table 4 you need the `--continue_epoch` and `--load_file` option.
+You need to train twice. First train a model with set `--use_wp_gru 0` and `--use_controller_input_prediction 0`, this will only train the perception backbone with auxiliary losses.
+Then, train a second model, set e.g. `--use_controller_input_prediction 1`, `--continue_epoch 0` and `--load_file /path/to/stage1/model_0030.pth`.
+The `load_file` option is usually used to resume a crashed training, but with `--continue_epoch 0` the training will start from scratch with the pre-trained weights used for initialization.
+
+The training dataset will be released at a later point.
+
+### Training in PyCharm
+You can also run and debug torchrun in PyCharm. To do that you need to set your run/debug configuration as follows:
+Set the script path to `/path/to/train.py`
+Set the interpreter options to:
+```Shell
+-m torch.distributed.run --nnodes=1 --nproc_per_node=1 --max_restarts=0 --rdzv_id=123456780 --rdzv_backend=c10d
+```
+Training parameters should be set in the `Parameters:` field and environment variable in `Environment Variables:`.
+Additionally, you need to set up conda environment (variables) as described above.
 
 ## Contact
 If you have any questions or suggestions, please feel free to open an issue or contact us at bernhard.jaeger@uni-tuebingen.de.
