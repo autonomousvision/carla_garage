@@ -34,7 +34,8 @@
 3. [Evaluation](#evaluation)
 4. [Data generation](#data-generation)
 5. [Training](#training)
-6. [Citation](#Citation)
+6. [Additional Documenation](#additional-documentation)
+7. [Citation](#Citation)
 
 ## Setup
 
@@ -164,13 +165,18 @@ cd tools
 ./make_docker.sh
 ```
 The script will create a docker image with the name transfuser-agent.
-Follow the instructions on the [leaderboard](https://leaderboard.carla.org/submit/) to make an account and install alpha.
+Follow the instructions on the [leaderboard](https://leaderboard.carla.org/submit_v1/) to make an account and install alpha.
 
 ```Shell
 alpha login
 alpha benchmark:submit  --split 3 transfuser-agent:latest
 ```
 The command will upload the docker image to the cloud and evaluate it.
+
+## Additional Documentation
+- **Coordinate systems** in CARLA repositories are usually a big mess. In this project, we addressed this by changing all data into a unified coordinate frame. Further information about the coordinate system can be found [here](docs/Coordinate_systems.md).
+
+- The TransFuser model family has grown quite a lot with different variants, which can be confusing for new community members. The **[history](docs/history.md)** file explains the different versions and which paper you should cite to refer to them.
 
 ## Contact
 If you have any questions or suggestions, please feel free to open an issue or contact us at bernhard.jaeger@uni-tuebingen.de.
