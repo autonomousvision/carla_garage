@@ -127,11 +127,11 @@ If you want to debug on a single gpu simply set `--nproc_per_node=1`.
 The training script has many options to configure your training you can list them with `python train.py --help` or look through the code.
 The most important once are: 
 ```Shell
---id # Name of your experiment
---batch_size # Batch size per GPU
---setting # Which towns to withhold during training. Use 'all' for leaderboard, longest6 and '02_05_withheld' for LAV models.
---root_dir # Path to the root_dir of your dataset
---logdir # Root dir where the training files will be stored
+--id your_model_000 # Name of your experiment
+--batch_size 32 # Batch size per GPU
+--setting all # Which towns to withhold during training. Use 'all' for leaderboard, longest6 and '02_05_withheld' for LAV models.
+--root_dir /path/to/dataset # Path to the root_dir of your dataset
+--logdir /path/to/models # Root dir where the training files will be stored
 --use_controller_input_prediction 1 # Whether your model trains with a classification + path prediction head
 --use_wp_gru 0 # Whether you model trains with a waypoint head.
 --use_discrete_command 1 # Whether to use the navigational command as input to the model
