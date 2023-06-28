@@ -146,8 +146,8 @@ The `load_file` option is usually used to resume a crashed training, but with `-
 The training dataset will be released at a later point.
 
 ### Training in PyCharm
-You can also run and debug torchrun in PyCharm. To do that you need to set your run/debug configuration as follows:
-Set the script path to `/path/to/train.py`
+You can also run and debug torchrun in PyCharm. To do that you need to set your run/debug configuration as follows:\
+Set the script path to: `/path/to/train.py` \
 Set the interpreter options to:
 ```Shell
 -m torch.distributed.run --nnodes=1 --nproc_per_node=1 --max_restarts=0 --rdzv_id=123456780 --rdzv_backend=c10d
@@ -155,9 +155,25 @@ Set the interpreter options to:
 Training parameters should be set in the `Parameters:` field and environment variable in `Environment Variables:`.
 Additionally, you need to set up conda environment (variables) as described above.
 
+## Submitting to the CARLA leaderboard
+To submit to the CARLA leaderboard, you need docker installed on your system (as well as the nvidia-container-toolkit to test it). Create the folder `team_code/model_ckpt/transfuser`. Copy the model.pth files and config.pickle that you want to evaluate to team_code/model_ckpt/transfuser. If you want to evaluate an ensemble, simply copy multiple .pth files into the folder, the code will load all of them and ensemble the predictions.
+Edit the environment paths at the top of `tools/make_docker.sh` and then:
+
+```Shell
+cd tools
+./make_docker.sh
+```
+The script will create a docker image with the name transfuser-agent.
+Follow the instructions on the [leaderboard](https://leaderboard.carla.org/submit/) to make an account and install alpha.
+
+```Shell
+alpha login
+alpha benchmark:submit  --split 3 transfuser-agent:latest
+```
+The command will upload the docker image to the cloud and evaluate it.
+
 ## Contact
 If you have any questions or suggestions, please feel free to open an issue or contact us at bernhard.jaeger@uni-tuebingen.de.
-
 
 ## Citation
 If you find CARLA garage useful, please consider giving us a star &#127775; and citing our paper with the following BibTeX entry.
