@@ -174,9 +174,11 @@ alpha benchmark:submit  --split 3 transfuser-agent:latest
 The command will upload the docker image to the cloud and evaluate it.
 
 ## Additional Documentation
-- **Coordinate systems** in CARLA repositories are usually a big mess. In this project, we addressed this by changing all data into a unified coordinate frame. Further information about the coordinate system can be found [here](docs/Coordinate_systems.md).
+- **Coordinate systems** in CARLA repositories are usually a big mess. In this project, we addressed this by changing all data into a unified coordinate frame. Further information about the coordinate system can be found [here](docs/coordinate_systems.md).
 
 - The TransFuser model family has grown quite a lot with different variants, which can be confusing for new community members. The **[history](docs/history.md)** file explains the different versions and which paper you should cite to refer to them.
+
+- Building a full autonomous driving stack involves quite some [**engineering**](docs/engineering.md). The documentation explains some of the techniques and design philosophies we used in this project. 
 
 ## Contact
 If you have any questions or suggestions, please feel free to open an issue or contact us at bernhard.jaeger@uni-tuebingen.de.

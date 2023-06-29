@@ -7,7 +7,7 @@ Here is a short history over the different transFuser versions and how to cite t
 The first version of TransFuser. The paper [Multi-Modal Fusion Transformer for End-to-End Autonomous Driving](https://www.cvlibs.net/publications/Prakash2021CVPR.pdf) introduced the architecture back in 2021.
 The code is still available and can be found [here](https://github.com/autonomousvision/transfuser/tree/cvpr2021).
 The models were developed in the early days of the CARLA leaderboard code / community, where dataset quality was quite poor. There is not much of a point to compare to this model any more unless you want to make your life easy.
-```Shell
+```BibTeX
 @inproceedings{Prakash2021CVPR,
   author = {Prakash, Aditya and
             Chitta, Kashyap and
@@ -25,7 +25,7 @@ Together with auxiliary training, this pushed the performance of TransFuser a lo
 The document is available online but not formally published as it is only relevant to the core CARLA community.
 We would still appreciate it if you cite it where relevant.
 The code and models are not directly released, but the relevant code was published as part of the PAMI project.
-```Shell
+```BibTeX
 @mastersthesis{Jaeger2021Thesis, 
 	author = {Bernhard Jaeger}, 
 	title = {Expert Drivers for Autonomous Driving}, 
@@ -41,7 +41,7 @@ The paper features a version called Latent TransFuser, which is a camera only Tr
 The final models are roughly 4x better on the CARLA leaderboard than the CVPR TransFuser. 
 This is the model you should be comparing to when you want to claim your method outperforms TransFuser.
 Code, models and data are available [online](https://github.com/autonomousvision/transfuser/).
-```Shell
+```BibTeX
 @article{Chitta2022PAMI,
   author = {Chitta, Kashyap and
             Prakash, Aditya and
@@ -59,7 +59,7 @@ Code, models and data are available [online](https://github.com/autonomousvision
 The pre-print [Hidden Biases of End-to-End Driving Models](https://arxiv.org/abs/2306.07957) offers some explanations why TransFuser and related approaches work so well.
 It also contains the latest and best performing models in the TransFuser family, called TransFuser++ (as well as a WP variant that uses waypoints as output representation).
 [Code](https://github.com/autonomousvision/carla_garage) is available online. TransFuser++ is what you need to outperform to claim state-of-the-art performance.
-```Shell
+```BibTeX
 @article{Jaeger2023ARXIV,
   title={Hidden Biases of End-to-End Driving Models},
   author={Jaeger, Bernhard and Chitta, Kashyap and Geiger, Andreas},
