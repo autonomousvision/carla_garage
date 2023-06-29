@@ -164,8 +164,17 @@ Edit the environment paths at the top of `tools/make_docker.sh` and then:
 cd tools
 ./make_docker.sh
 ```
+
 The script will create a docker image with the name transfuser-agent.
-Follow the instructions on the [leaderboard](https://leaderboard.carla.org/submit_v1/) to make an account and install alpha.
+Before submitting, you should locally test your image. To do that, start up a CARLA server on your computer (it will be able to communicate with the docker container via ports). Then start your docker container. An example is provided in [run_docker.sh](tools/run_docker.sh).
+Inside the docker container start your agent using:
+```Shell
+cd leaderboard
+cd scripts
+bash run_evaluation.sh
+```
+You can stop the evaluation, after confirming that there is no issue, using "ctrl + c + \". <br>
+To submit, follow the instructions on the [leaderboard](https://leaderboard.carla.org/submit_v1/) to make an account and install alpha.
 
 ```Shell
 alpha login
