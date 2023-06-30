@@ -1,7 +1,7 @@
 <p align="center">
   <img src="assets/carla_garage_white.png" alt="CARLA garage" width="500"/>
   <h3 align="center">
-        <a href="https://arxiv.org/pdf/2306.07957.pdf"> PDF</a> | Video | Talk | <a href="https://www.cvlibs.net/shared/common_misconceptions.pdf"> Slides</a>
+        <a href="https://arxiv.org/pdf/2306.07957.pdf"> PDF</a> | Video | <a href="https://youtu.be/x_42Fji1Z2M?t=1073">Talk</a> | <a href="https://www.cvlibs.net/shared/common_misconceptions.pdf"> Slides</a>
   </h3>
 </p>
     
@@ -19,7 +19,7 @@
 
 ## To Do
 - [ ] Dataset
-- [ ] Documentation
+- [x] Documentation
 - [x] Pre-trained models
 - [x] Training code
 - [x] Data collection code
@@ -187,7 +187,9 @@ The command will upload the docker image to the cloud and evaluate it.
 
 - The TransFuser model family has grown quite a lot with different variants, which can be confusing for new community members. The **[history](docs/history.md)** file explains the different versions and which paper you should cite to refer to them.
 
-- Building a full autonomous driving stack involves quite some [**engineering**](docs/engineering.md). The documentation explains some of the techniques and design philosophies we used in this project. 
+- Building a full autonomous driving stack involves quite some [**engineering**](docs/engineering.md). The documentation explains some of the techniques and design philosophies we used in this project.
+
+- The codebase can run any experiment presented in the paper. It also supports some additional features that did we did not end up using. They are documented [here](docs/additional_features.md).
 
 ## Contact
 If you have any questions or suggestions, please feel free to open an issue or contact us at bernhard.jaeger@uni-tuebingen.de.
