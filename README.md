@@ -1,7 +1,7 @@
 <p align="center">
   <img src="assets/carla_garage_white.png" alt="CARLA garage" width="500"/>
   <h3 align="center">
-        <a href="https://arxiv.org/pdf/2306.07957.pdf"> PDF</a> | Video | <a href="https://youtu.be/x_42Fji1Z2M?t=1073">Talk</a> | <a href="https://www.cvlibs.net/shared/common_misconceptions.pdf"> Slides</a>
+        <a href="https://arxiv.org/pdf/2306.07957.pdf"> PDF</a> | <a href="https://youtu.be/ChrPW8RdqQU">Video</a> | <a href="https://youtu.be/x_42Fji1Z2M?t=1073">Talk</a> | <a href="https://www.cvlibs.net/shared/common_misconceptions.pdf"> Slides</a>
   </h3>
 </p>
     
