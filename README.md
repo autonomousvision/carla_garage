@@ -189,7 +189,7 @@ The command will upload the docker image to the cloud and evaluate it.
 
 - Building a full autonomous driving stack involves quite some [**engineering**](docs/engineering.md). The documentation explains some of the techniques and design philosophies we used in this project.
 
-- The codebase can run any experiment presented in the paper. It also supports some additional features that did we did not end up using. They are documented [here](docs/additional_features.md).
+- The codebase can run any experiment presented in the paper. It also supports some additional features that we did not end up using. They are documented [here](docs/additional_features.md).
 
 ## Contact
 If you have any questions or suggestions, please feel free to open an issue or contact us at bernhard.jaeger@uni-tuebingen.de.
