@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.3.0-cudnn8-devel-ubuntu16.04
+FROM nvidia/cuda:11.3.1-cudnn8-devel-ubuntu16.04
 
 ARG HTTP_PROXY
 ARG HTTPS_PROXY
