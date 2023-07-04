@@ -17,21 +17,12 @@
 > We provide clean, configurable code with documentation as well as pre-trained weights with strong performance. \
 > The repository can serve as a good starting point for end-to-end autonomous driving research on [CARLA](https://github.com/carla-simulator/carla).
 
-## To Do
-- [ ] Dataset
-- [x] Documentation
-- [x] Pre-trained models
-- [x] Training code
-- [x] Data collection code
-- [x] Additional scripts
-- [x] Inference code
-- [x] Initial repo & paper
-
 ## Contents
 
 1. [Setup](#setup)
 2. [Pre-Trained Models](#pre-trained-models)
 3. [Evaluation](#evaluation)
+4. [Dataset](#dataset)
 4. [Data generation](#data-generation)
 5. [Training](#training)
 6. [Additional Documenation](#additional-documentation)
@@ -64,9 +55,10 @@ You can add this in your shell scripts or directly integrate it into your favori
 E.g. in PyCharm: Settings -> Project -> Python Interpreter -> Show all -> garage (need to add from existing conda environment first) -> Show Interpreter Paths -> add all the absolute paths above (without pythonpath).
 
 ## Pre-Trained Models
-We provide a set of pretrained models [here](https://drive.google.com/file/d/1dDeeRrPL7UAqqHn4RMdg3DrvHSlNgzmE/view?usp=sharing).
+We provide a set of pretrained models [here](https://s3.eu-central-1.amazonaws.com/avg-projects-2/jaeger2023arxiv/models/pretrained_models.zip).
+The models are licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0).
 These are the final model weights used in the paper, the folder indicates the benchmark.
-For the training and validation towns, we provide 3 models which correspond to 3 different training seeds.
+For the training and validation towns, we provide 3 models which correspond to 3 different training seeds. The format is `approach_trainingsetting_seed`. Each folder has an `args.txt` containing the training settings in text, a `config.pickle` containing all hyperparameters for the code and a `model_0030.pth` containing the model weights. Additionally, there are training logs for most models.
 
 ## Evaluation
 
@@ -104,6 +96,16 @@ Afterward, you can run the feature by using the `--visualize_infractions` flag i
 
 ### How to actually evaluate
 The instructions above are what you will be using to debug the code. Actually evaluating challenging benchmarks such as longest6, that have over 108 long routes, is very slow in practice. Luckily, CARLA evaluations are [embarrassingly parallel](https://en.wikipedia.org/wiki/Embarrassingly_parallel). Each of the 108 routes can be evaluated independently in parallel. That means if you have 2 GPUs you can evaluate 2x faster, if you have 108 GPUs you can evaluate 108x faster. While using the same amount of overall compute. To do that, you need access to a scalable cluster system and some scripts to parallelize. We are using [SLURM](https://slurm.schedmd.com/overview.html) at our institute. To evaluate a model, we are using the script [evaluate_routes_slurm.py](evaluate_routes_slurm.py). It is intended to be run inside a tmux on an interactive node and will spawn evaluation jobs (up till the number set in [max_num_jobs.txt](max_num_jobs.txt)). It also monitors the jobs and resubmits jobs where it detected a crash. In the end, the script will run the result parser to aggregate the results. If you are using a different system, you can use this as guidance and write your own script. The CARLA leaderboard benchmarks are the most challenging in the driving scene right now, but if you don't have access to multiple GPUs you might want to use simulators that are less compute intensive for your research. NuPlan is a good option, and our group also provides [strong baselines for nuPlan](https://github.com/autonomousvision/nuplan_garage).
+
+## Dataset
+We released the dataset we used to train our final models.
+The dataset is licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0).
+You can download it using:
+```Shell
+cd /path/to/carla_garage/tools
+bash download_data.sh
+```
+The script will download the data to `/path/to/carla_garage/data`. This is also the path you need to set `--root_dir` to for training. The script will download and unzip the data with 11 parallel processes. The download is roughly 350 GB large (will be a bit more after unzipping).
 
 ## Data Generation
 Dataset generation is similar to evaluation. You can generate a dataset by changing the `--agent` option to [data_agent.py](team_code/data_agent.py) and the `--track` option to `MAP`. In addition, you need to set the following environment flags:
