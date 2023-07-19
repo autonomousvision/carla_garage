@@ -1,17 +1,15 @@
 <p align="center">
   <img src="assets/carla_garage_white.png" alt="CARLA garage" width="500"/>
   <h3 align="center">
-        <a href="https://arxiv.org/pdf/2306.07957.pdf"> PDF</a> | <a href="https://youtu.be/ChrPW8RdqQU">Video</a> | <a href="https://youtu.be/x_42Fji1Z2M?t=1073">Talk</a> | <a href="https://www.cvlibs.net/shared/common_misconceptions.pdf"> Slides</a>
+        <a href="https://arxiv.org/abs/2306.07957.pdf"> Paper</a> | <a href="https://youtu.be/ChrPW8RdqQU">Video</a> | <a href="https://youtu.be/x_42Fji1Z2M?t=1073">Talk</a> | <a href="https://www.cvlibs.net/shared/common_misconceptions.pdf"> Slides</a>
   </h3>
 </p>
     
 
 
-> [**Hidden Biases of End-to-End Driving Models**](https://arxiv.org/abs/2306.07957)
->
-> [Bernhard Jaeger](https://kait0.github.io/), [Kashyap Chitta](https://kashyap7x.github.io/), and [Andreas Geiger](https://www.cvlibs.net/)
-> 
-> University of Tübingen, Tübingen AI Center
+> [**Hidden Biases of End-to-End Driving Models**](https://arxiv.org/abs/2306.07957) <br>
+> [Bernhard Jaeger](https://kait0.github.io/), [Kashyap Chitta](https://kashyap7x.github.io/), [Andreas Geiger](https://www.cvlibs.net/) <br>
+> International Conference on Computer Vision (ICCV), 2023
 > 
 > This repo contains the code for the paper [**Hidden Biases of End-to-End Driving Models**](https://arxiv.org/abs/2306.07957) . \
 > We provide clean, configurable code with documentation as well as pre-trained weights with strong performance. \
@@ -26,7 +24,7 @@
 4. [Data generation](#data-generation)
 5. [Training](#training)
 6. [Additional Documenation](#additional-documentation)
-7. [Citation](#Citation)
+7. [Citation](#citation)
 
 ## Setup
 
