@@ -449,7 +449,7 @@ class RouteScenario(BasicScenario):
         # Create the background activity of the route
         if os.getenv('BENCHMARK') == 'longest6':
             amount = 500 # use all spawn points
-        if os.getenv('BENCHMARK') == 'empty':
+        elif os.getenv('BENCHMARK') == 'empty':
             amount = 0 # use all spawn points
         elif os.getenv('BENCHMARK') == 'lav':
             # Create the background activity of the route

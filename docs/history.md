@@ -56,15 +56,14 @@ Code, models and data are available [online](https://github.com/autonomousvision
 ```
 
 ### TransFuser++ (ArXiv 2023)
-The pre-print [Hidden Biases of End-to-End Driving Models](https://arxiv.org/abs/2306.07957) offers some explanations why TransFuser and related approaches work so well.
+The ICCV 2023 paper [Hidden Biases of End-to-End Driving Models](https://arxiv.org/abs/2306.07957) offers some explanations why TransFuser and related approaches work so well.
 It also contains the latest and best performing models in the TransFuser family, called TransFuser++ (as well as a WP variant that uses waypoints as output representation).
 [Code](https://github.com/autonomousvision/carla_garage) is available online. TransFuser++ is what you need to outperform to claim state-of-the-art performance.
 ```BibTeX
-@article{Jaeger2023ARXIV,
+@article{Jaeger2023ICCV,
   title={Hidden Biases of End-to-End Driving Models},
-  author={Jaeger, Bernhard and Chitta, Kashyap and Geiger, Andreas},
-  journal={arXiv},
-  volume={2306.07957},
+  author={Bernhard Jaeger and Kashyap Chitta and Andreas Geiger},
+  booktitle={Proc. of the IEEE International Conf. on Computer Vision (ICCV)},
   year={2023}
 }
 ```

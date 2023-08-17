@@ -200,7 +200,7 @@ If you find CARLA garage useful, please consider giving us a star &#127775; and 
 ```BibTeX
 @article{Jaeger2023ICCV,
   title={Hidden Biases of End-to-End Driving Models},
-  author={Jaeger, Bernhard and Chitta, Kashyap and Geiger, Andreas},
+  author={Bernhard Jaeger and Kashyap Chitta and Andreas Geiger},
   booktitle={Proc. of the IEEE International Conf. on Computer Vision (ICCV)},
   year={2023}
 }

@@ -2,17 +2,16 @@
 The provided codebase can run all experiments described in the paper. It actually supports more functionality than presented in the paper. Not all experiments make it into the final cut of a paper. This document describes functionality that is not part of the paper but could potentially be useful for other people.
 
 ## PlanT
-We provide a reimplementation of the privileged PlanT planner from the CoRL 2022 paper [PlanT: Explainable Planning Transformers via Object-Level Representations](https://www.katrinrenz.de/plant/). The architecture can be found in the [plant.py](../team_code/plant.py) file. The method is also trained with [train.py](../team_code/train.py) by setting the argument `--use_plant 1`. To evaluate the method, use the [plant_agent.py](../team_code/plant_agent.py) file. The reimplementation is faithful w.r.t. the core ideas of the method, but has small implementation differences. For example, our PlanT also handles stop signs and pedestrians. We were able to reproduce PlanTs expert level performance with this code. Our reproduced PlanT outperforms the original one by 9 DS on longest6, because our expert is better than the one used in their paper. The result is the median out of 3 training seeds.
+We provide a reimplementation of the privileged PlanT planner from the CoRL 2022 paper [PlanT: Explainable Planning Transformers via Object-Level Representations](https://www.katrinrenz.de/plant/). The architecture can be found in the [plant.py](../team_code/plant.py) file. The method is also trained with [train.py](../team_code/train.py) by setting the argument `--use_plant 1`. To evaluate the method, use the [plant_agent.py](../team_code/plant_agent.py) file. The reimplementation is faithful w.r.t. the core ideas of the method, but has small implementation differences. For example, our PlanT also handles stop signs and pedestrians. We were able to reproduce PlanTs expert level performance with this code.
 
 Performance on training towns (Longest6).
 
-| **Method**                                | **DS ↑** | **RC ↑** | **IS ↑** | **Veh ↓** |
-|-------------------------------------------|----------|----------|----------|-----------|
-| [PlanT](https://arxiv.org/abs/2210.14222) | 81       | 94       | 0.87     | 0.31      |
-| PlanT (ours)                              | **90**   | **98**   | **0.92** | **0.18**  |
-| *Expert* (ours)                           | *89*     | *97*     | *0.92*   | *0.12*    |
+| **Method**                                | **DS ↑** | **RC ↑** | **IS ↑** |
+|-------------------------------------------|----------|----------|----------|
+| [PlanT](https://arxiv.org/abs/2210.14222) | 81       | 94       | **0.87**     |
+| PlanT (ours)                              | **82**   | **96**   | 0.85 |
+| *Expert* (ours)                           | *81*     | *90*     | *0.91*   |
 
-We will provide the pre-trained model at a later point.
 
 ### Dataset relabeling
 With a learned planner like PlanT one can do [Learning by Cheating](https://arxiv.org/abs/1912.12294) and imitate PlanTs predictions with a sensor agent. We provide [code](../team_code/relabel_dataset.py) for adding PlanTs offline predictions to the dataset. A usage example can be found in [slurm_relabel_dataset.sh](../team_code/slurm_relabel_dataset.sh). The code is a neat engineering example of how one can abuse pytorch as a multiprocessing library. Early preliminary results with learning by cheating (LBC twice) didn't look promising, so we haven't used this much.

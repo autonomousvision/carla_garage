@@ -89,9 +89,9 @@ class SensorAgent(autonomous_agent.AutonomousAgent):
     # Classification networks are known to be overconfident which leads to them braking a bit too late in our case.
     # Reducing the driving speed slightly counteracts that.
     if int(os.environ.get('SLOWER', 1)):
-      print('Reduce target speed value by one.')
-      self.config.target_speeds[2] = self.config.target_speeds[2] - 1.0
-      self.config.target_speeds[3] = self.config.target_speeds[3] - 1.0
+      print('Reduce target speed value by two m/s.')
+      self.config.target_speeds[2] = self.config.target_speeds[2] - 2.0
+      self.config.target_speeds[3] = self.config.target_speeds[3] - 2.0
 
     # Collects some statistics about the target point. Not needed usually.
     self.tp_stats = False
