@@ -21,6 +21,7 @@ export RESUME=1
 export DATAGEN=0
 export SAVE_PATH=${WORK_DIR}/results
 export UNCERTAINTY_THRESHOLD=0.33
+export BENCHMARK=longest6
 
 
 python3 ${LEADERBOARD_ROOT}/leaderboard/leaderboard_evaluator_local.py \
