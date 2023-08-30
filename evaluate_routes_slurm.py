@@ -304,7 +304,7 @@ def main():
   eval_root = f'{code_root}/evaluation/{experiment_name_root}'
   subprocess.check_call(
       f'python {code_root}/tools/result_parser.py --xml {code_root}/leaderboard/data/{benchmark}.xml '
-      f'--save_dir {eval_root} --log_dir {eval_root} --town_maps {code_root}/leaderboard/data/town_maps_xodr '
+      f'--results {eval_root} --log_dir {eval_root} --town_maps {code_root}/leaderboard/data/town_maps_xodr '
       f'--map_dir {code_root}/leaderboard/data/town_maps_tga --device cpu '
       f'--map_data_folder {code_root}/tools/proxy_simulator/map_data --subsample 1 --strict --visualize_infractions',
       stdout=sys.stdout,
