@@ -108,7 +108,6 @@ The script will download the data to `/path/to/carla_garage/data`. This is also 
 ## Data Generation
 Dataset generation is similar to evaluation. You can generate a dataset by changing the `--agent` option to [data_agent.py](team_code/data_agent.py) and the `--track` option to `MAP`. In addition, you need to set the following environment flags:
 ```Shell
-export COMPLETION_PERCENT=85
 export DATAGEN=1
 export BENCHMARK=collection
 export CHECKPOINT_ENDPOINT=/path/to/dataset/Routes_{route}_Repetition{repetition}/Dataset_generation_{route}_Repetition{repetition}.json
