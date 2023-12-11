@@ -5,7 +5,8 @@
   </h3>
 </p>
     
-
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/hidden-biases-of-end-to-end-driving-models/carla-longest6-on-carla)](https://paperswithcode.com/sota/carla-longest6-on-carla?p=hidden-biases-of-end-to-end-driving-models)
+[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/hidden-biases-of-end-to-end-driving-models/autonomous-driving-on-carla-leaderboard)](https://paperswithcode.com/sota/autonomous-driving-on-carla-leaderboard?p=hidden-biases-of-end-to-end-driving-models)
 
 > [**Hidden Biases of End-to-End Driving Models**](https://arxiv.org/abs/2306.07957) <br>
 > [Bernhard Jaeger](https://kait0.github.io/), [Kashyap Chitta](https://kashyap7x.github.io/), [Andreas Geiger](https://www.cvlibs.net/) <br>
