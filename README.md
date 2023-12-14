@@ -144,8 +144,6 @@ You need to train twice. First train a model with set `--use_wp_gru 0` and `--us
 Then, train a second model, set e.g. `--use_controller_input_prediction 1`, `--continue_epoch 0` and `--load_file /path/to/stage1/model_0030.pth`.
 The `load_file` option is usually used to resume a crashed training, but with `--continue_epoch 0` the training will start from scratch with the pre-trained weights used for initialization.
 
-The training dataset will be released at a later point.
-
 ### Training in PyCharm
 You can also run and debug torchrun in PyCharm. To do that you need to set your run/debug configuration as follows:\
 Set the script path to: `/path/to/train.py` \
