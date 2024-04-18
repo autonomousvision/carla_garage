@@ -1,5 +1,6 @@
 ## Standard CARLA coordinate system
-Right hand side. \
+https://carla.readthedocs.io/en/0.9.10/python_api/#carlarotation
+
 X is pointing forward \
 Y is pointing towards the right \
 Z is pointing upward
