@@ -406,7 +406,7 @@ class SensorAgent(autonomous_agent.AutonomousAgent):
       lidar_bev = []
       # prepare LiDAR input
       for i in lidar_indices:
-        lidar_point_cloud = deepcopy(self.lidar_buffer[i])
+        lidar_point_cloud = deepcopy(self.lidar_buffer[-(i+1)])
 
         # For single frame there is no point in realignment. The state_log index will also differ.
         if self.config.realign_lidar and self.config.lidar_seq_len > 1:
