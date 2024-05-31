@@ -38,10 +38,12 @@ class NpcVehicleControl(BasicControl):
         self._local_planner = LocalPlanner(  # pylint: disable=undefined-variable
             self._actor, opt_dict={
                 'target_speed': self._target_speed * 3.6,
-                    'lateral_control_dict': self._args})
+                'lateral_control_dict': self._args})
 
         if self._waypoints:
             self._update_plan()
+
+        self._brake_lights_active = False
 
     def _update_plan(self):
         """
@@ -53,6 +55,12 @@ class NpcVehicleControl(BasicControl):
                 transform.location, project_to_road=True, lane_type=carla.LaneType.Any)
             plan.append((waypoint, RoadOption.LANEFOLLOW))
         self._local_planner.set_global_plan(plan)
+
+    def _update_offset(self):
+        """
+        Update the plan (waypoint list) of the LocalPlanner
+        """
+        self._local_planner._vehicle_controller._lat_controller._offset = self._offset   # pylint: disable=protected-access
 
     def reset(self):
         """
@@ -67,6 +75,9 @@ class NpcVehicleControl(BasicControl):
     def run_step(self):
         """
         Execute on tick of the controller's control loop
+
+        Note: Negative target speeds are not yet supported.
+              Try using simple_vehicle_control or vehicle_longitudinal_control.
 
         If _waypoints are provided, the vehicle moves towards the next waypoint
         with the given _target_speed, until reaching the final waypoint. Upon reaching
@@ -84,8 +95,18 @@ class NpcVehicleControl(BasicControl):
             self._waypoints_updated = False
             self._update_plan()
 
+        if self._offset_updated:
+            self._offset_updated = False
+            self._update_offset()
+
         target_speed = self._target_speed
+        # If target speed is negavite, raise an exception
+        if target_speed < 0:
+            raise NotImplementedError("Negative target speeds are not yet supported")
+
         self._local_planner.set_speed(target_speed * 3.6)
+        if not self._actor.is_alive:
+            return
         control = self._local_planner.run_step(debug=False)
 
         # Check if the actor reached the end of the plan
@@ -94,8 +115,9 @@ class NpcVehicleControl(BasicControl):
 
         self._actor.apply_control(control)
 
+        current_speed = math.sqrt(self._actor.get_velocity().x**2 + self._actor.get_velocity().y**2)
+
         if self._init_speed:
-            current_speed = math.sqrt(self._actor.get_velocity().x**2 + self._actor.get_velocity().y**2)
 
             # If _init_speed is set, and the PID controller is not yet up to the point to take over,
             # we manually set the vehicle to drive with the correct velocity
@@ -104,3 +126,16 @@ class NpcVehicleControl(BasicControl):
                 vx = math.cos(yaw) * target_speed
                 vy = math.sin(yaw) * target_speed
                 self._actor.set_target_velocity(carla.Vector3D(vx, vy, 0))
+
+        # Change Brake light state
+        if (current_speed > target_speed or target_speed < 0.2) and not self._brake_lights_active:
+            light_state = self._actor.get_light_state()
+            light_state |= carla.VehicleLightState.Brake
+            self._actor.set_light_state(carla.VehicleLightState(light_state))
+            self._brake_lights_active = True
+
+        if self._brake_lights_active and current_speed < target_speed:
+            self._brake_lights_active = False
+            light_state = self._actor.get_light_state()
+            light_state &= ~carla.VehicleLightState.Brake
+            self._actor.set_light_state(carla.VehicleLightState(light_state))

@@ -88,20 +88,10 @@ class FollowLeadingVehicle(BasicScenario):
         """
         Custom initialization
         """
-
-        first_vehicle_waypoint, _ = get_waypoint_in_distance(self._reference_waypoint, self._first_vehicle_location)
-        self._other_actor_transform = carla.Transform(
-            carla.Location(first_vehicle_waypoint.transform.location.x,
-                           first_vehicle_waypoint.transform.location.y,
-                           first_vehicle_waypoint.transform.location.z + 1),
-            first_vehicle_waypoint.transform.rotation)
-        first_vehicle_transform = carla.Transform(
-            carla.Location(self._other_actor_transform.location.x,
-                           self._other_actor_transform.location.y,
-                           self._other_actor_transform.location.z - 500),
-            self._other_actor_transform.rotation)
-        first_vehicle = CarlaDataProvider.request_new_actor('vehicle.nissan.patrol', first_vehicle_transform)
-        first_vehicle.set_simulate_physics(enabled=False)
+        waypoint, _ = get_waypoint_in_distance(self._reference_waypoint, self._first_vehicle_location)
+        transform = waypoint.transform
+        transform.location.z += 0.5
+        first_vehicle = CarlaDataProvider.request_new_actor('vehicle.nissan.patrol', transform)
         self.other_actors.append(first_vehicle)
 
     def _create_behavior(self):
@@ -114,12 +104,7 @@ class FollowLeadingVehicle(BasicScenario):
         If this does not happen within 60 seconds, a timeout stops the scenario
         """
 
-        # to avoid the other actor blocking traffic, it was spawed elsewhere
-        # reset its pose to the required one
-        start_transform = ActorTransformSetter(self.other_actors[0], self._other_actor_transform)
-
         # let the other actor drive until next intersection
-        # @todo: We should add some feedback mechanism to respond to ego_vehicle behavior
         driving_to_next_intersection = py_trees.composites.Parallel(
             "DrivingTowardsIntersection",
             policy=py_trees.common.ParallelPolicy.SUCCESS_ON_ONE)
@@ -144,7 +129,6 @@ class FollowLeadingVehicle(BasicScenario):
 
         # Build behavior tree
         sequence = py_trees.composites.Sequence("Sequence Behavior")
-        sequence.add_child(start_transform)
         sequence.add_child(driving_to_next_intersection)
         sequence.add_child(stop)
         sequence.add_child(endcondition)

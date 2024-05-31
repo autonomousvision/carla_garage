@@ -708,22 +708,23 @@ def draw_probability_boxes(img, speed_prob, target_speeds, color=(128, 128, 128)
   speed_index = np.argmax(speed_prob)
   colors = [color for _ in range(len(speed_prob))]
   colors[speed_index] = color_selected
-  start_x = 600
+  start_x = 0
+  start_y = 719  # 1024-155-150  # start_x and start_y specify position of upper left corner of box
   width_bar = 20 * 4
   width_space = 10
-  cv2.rectangle(img, (start_x, 0), (1024, 155), (255, 255, 255), cv2.FILLED)
+  cv2.rectangle(img, (start_x, start_y), (1024, start_y + 155), (255, 255, 255), cv2.FILLED)
 
   for idx, s in enumerate(speed_prob):
     start = start_x + idx * (width_space + width_bar)
-    cv2.rectangle(img, (start, 130), (start + width_bar, 130 - int(s * 100)), colors[idx], cv2.FILLED)
-    cv2.putText(img, f'{s:.2f}', (int(start + 0.33 * width_bar), 127 - int(s * 100)), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
+    cv2.rectangle(img, (start, start_y + 130), (start + width_bar, start_y + 130 - int(s * 100)), colors[idx], cv2.FILLED)
+    cv2.putText(img, f'{s:.2f}', (int(start + 0.33 * width_bar), start_y + 127 - int(s * 100)), cv2.FONT_HERSHEY_SIMPLEX, 0.4,
                 (0, 0, 0), 1, cv2.LINE_AA)
 
     # 3.6 is conversion from m/s to km/h
-    cv2.putText(img, f'{int(round(target_speeds[idx] * 3.6)):02d}', (int(start + 0.33 * width_bar), 150),
+    cv2.putText(img, f'{int(round(target_speeds[idx] * 3.6)):02d}', (int(start + 0.33 * width_bar), start_y + 150),
                 cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 1, cv2.LINE_AA)
 
-  cv2.putText(img, 'km/h', (start + width_bar + width_space, 150), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 1,
+  cv2.putText(img, 'km/h', (start + width_bar + width_space, start_y + 150), cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 0, 0), 1,
               cv2.LINE_AA)
 
 
@@ -803,3 +804,20 @@ def circle_line_segment_intersection(circle_center, circle_radius, pt1, pt2, ful
       return [intersections[0]]
     else:
       return intersections
+
+
+def crop_array(config, images_i):   # images_i must have dimensions (H,W,C) or (H,W)
+    """
+    Crop rgb images to the desired height and width
+    """
+    if config.crop_image:
+      # crops rgb/depth/semantics from the bottom to cropped_height and symetrically from both sides to cropped_width
+      assert config.cropped_height <= images_i.shape[0]
+      assert config.cropped_width <= images_i.shape[1]
+      side_crop_amount = (images_i.shape[1] - config.cropped_width) // 2
+      if len(images_i.shape) > 2: # for rgb, we have 3 channels
+        return images_i[0:config.cropped_height, side_crop_amount:images_i.shape[1]-side_crop_amount, :]
+      else:  # for depth and semantics, there is no channel dimension
+        return images_i[0:config.cropped_height, side_crop_amount:images_i.shape[1]-side_crop_amount]
+    else: 
+      return images_i

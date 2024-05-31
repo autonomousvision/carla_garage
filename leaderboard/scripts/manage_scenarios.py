@@ -1,12 +1,11 @@
 import argparse
 from argparse import RawTextHelpFormatter
 import math
-import os
-import sys
 
 import carla
 
 from leaderboard.utils.checkpoint_tools import fetch_dict
+from leaderboard.utils.route_parser import DIST_THRESHOLD
 
 SCENARIO_COLOR = {
     "Scenario1": [carla.Color(255, 0, 0), "Red"],
@@ -42,8 +41,7 @@ def get_color_validity(waypoint_transform, scenario_transform, scenario_type, sc
     Uses the same condition as in route_scenario to see if they will
     be differentiated
     """
-    TRIGGER_THRESHOLD = 1.4  # Routes use 1.5 (+ an error margin)
-    TRIGGER_ANGLE_THRESHOLD = 10
+    ANGLE_THRESHOLD = 10
 
     dx = float(waypoint_transform.location.x) - scenario_transform.location.x
     dy = float(waypoint_transform.location.y) - scenario_transform.location.y
@@ -51,12 +49,12 @@ def get_color_validity(waypoint_transform, scenario_transform, scenario_type, sc
     dpos = math.sqrt(dx * dx + dy * dy + dz * dz)
     dyaw = (float(waypoint_transform.rotation.yaw) - scenario_transform.rotation.yaw) % 360
 
-    if dpos > TRIGGER_THRESHOLD:
+    if dpos > DIST_THRESHOLD:
         if not debug:
             print("WARNING: Found a scenario with the wrong position "
                   "(Type: {}, Index: {})".format(scenario_type, scenario_index))
         return carla.Color(255, 0, 0)
-    if dyaw > TRIGGER_ANGLE_THRESHOLD and dyaw < (360 - TRIGGER_ANGLE_THRESHOLD):
+    if dyaw > ANGLE_THRESHOLD and dyaw < (360 - ANGLE_THRESHOLD):
         if not debug:
             print("WARNING: Found a scenario with the wrong orientation "
                   "(Type: {}, Index: {})".format(scenario_type, scenario_index))

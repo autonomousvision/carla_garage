@@ -47,23 +47,6 @@ def fetch_dict(endpoint):
     return data
 
 
-def create_default_json_msg():
-    msg = {
-            "sensors": [],
-            "values": [],
-            "labels": [],
-            "entry_status": "",
-            "eligible": "",
-            "_checkpoint": {
-                "progress": [],
-                "records": [],
-                "global_record": {}
-                },
-            }
-
-    return msg
-
-
 def save_dict(endpoint, data):
     if endpoint.startswith(('http:', 'https:', 'ftp:')):
         proxies = autodetect_proxy()
@@ -74,4 +57,4 @@ def save_dict(endpoint, data):
             _ = requests.patch(url=endpoint, headers={'content-type':'application/json'}, data=json.dumps(data, indent=4, sort_keys=True))
     else:
         with open(endpoint, 'w') as fd:
-            json.dump(data, fd, indent=4, sort_keys=True)
+            json.dump(data, fd, indent=4)

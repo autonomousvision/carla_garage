@@ -84,7 +84,8 @@ class ObsManager(ObsManagerBase):
     self._world = self.vehicle.get_world()
     self.criteria_stop = criteria_stop
 
-    maps_h5_path = self._map_dir / (self._world.get_map().name + '.h5')
+    maps_h5_path = self._map_dir / (self._world.get_map().name.split('/')[
+			                                -1] + '.h5')  # splitting because for Town13 the name is 'Carla/Maps/Town13/Town13' instead of 'Town13'
     with h5py.File(maps_h5_path, 'r', libver='latest', swmr=True) as hf:
       self._road = np.array(hf['road'], dtype=np.uint8)
       self._lane_marking_all = np.array(hf['lane_marking_all'], dtype=np.uint8)
@@ -97,6 +98,9 @@ class ObsManager(ObsManagerBase):
       # self._lane_marking_white_solid = np.array(hf['lane_marking_white_solid'], dtype=np.uint8)
 
       self._world_offset = np.array(hf.attrs['world_offset_in_meters'], dtype=np.float32)
+      # in case they aren't close, print them to know what values they should be
+      if not np.isclose(self._pixels_per_meter, float(hf.attrs['pixels_per_meter'])):
+        print(self._pixels_per_meter, float(hf.attrs['pixels_per_meter']))
       assert np.isclose(self._pixels_per_meter, float(hf.attrs['pixels_per_meter']))
 
     self._distance_threshold = np.ceil(self._width / self._pixels_per_meter)
@@ -113,8 +117,11 @@ class ObsManager(ObsManagerBase):
     if (stop_sign is not None) and (not criteria_stop.stop_completed):
       bb_loc = carla.Location(stop_sign.trigger_volume.location)
       bb_ext = carla.Vector3D(stop_sign.trigger_volume.extent)
-      bb_ext.x = max(bb_ext.x, bb_ext.y)
-      bb_ext.y = max(bb_ext.x, bb_ext.y)
+      # Workaround since the extents of trigger_volumes of stop signs are often wrong
+      # bb_ext.x = max(bb_ext.x, bb_ext.y)
+      # bb_ext.y = max(bb_ext.x, bb_ext.y)
+      bb_ext.x = 1.5
+      bb_ext.y = 1.5
       trans = stop_sign.get_transform()
       stops = [(carla.Transform(trans.location, trans.rotation), bb_loc, bb_ext)]
     return stops

@@ -18,36 +18,31 @@ CARLA forum</a>
 ---
 
 ## Quick start
-  <p style="padding-left:30px;line-height:1.8">
-    [__Get ScenarioRunner__](getting_scenariorunner.md)
-        — Tutorial on how to download and launch ScenarioRunner.  
-    [__First steps__](getting_started.md)
-        — Brief tutorials on how to run different types of scenarios.  
-    [__Create a new scenario__](creating_new_scenario.md)
-        — Tutorial on how to create a new scenario using ScenarioRunner.  
-    [__Metrics module__](metrics_module.md)
-        — Explanation of the metrics module.  
-    [__F.A.Q.__](FAQ.md)
-        — Some of the most frequent installation issues.  
-    [__Release notes__](CHANGELOG.md)
-        — Features, fixes and other changes listed per release.  
-  </p>
+
+[**Get ScenarioRunner**](<getting_scenariorunner>) — Tutorial on how to download and launch ScenarioRunner.<br>
+
+[**First steps**](<getting_started>) — Brief tutorials on how to run different types of scenarios.<br>
+
+[**Create a new scenario**](<creating_new_scenario>) — Tutorial on how to create a new scenario using ScenarioRunner.<br>
+
+[**Metrics module**](<metrics_module>) — Explanation of the metrics module.<br>
+
+[**F.A.Q.**](<FAQ>) — Some of the most frequent installation issues.<br>
+
+[**Release notes**](<CHANGELOG>) — Features, fixes and other changes listed per release.<br>
+
 
 ## References
-  <p style="padding-left:30px;line-height:1.8">
-    [__List of scenarios__](list_of_scenarios.md)
-        — Example scenarios available in ScenarioRunner.  
-    [__OpenScenario support__](getting_started.md)
-        — Support status of OpenSCENARIO features.  
-  </p>
+
+[**List of scenarios**](<list_of_scenarios>) — Example scenarios available in ScenarioRunner.<br>
+
+[**OpenScenario support**](<openscenario_support>) — Support status of OpenSCENARIO features.<br>
+
 
 ## Contributing
-  <p style="padding-left:30px;line-height:1.8">
-    [__Code of conduct__](CODE_OF_CONDUCT.md)
-        — Standard rights and duties for contributors.
-    [__Coding standard__](coding_standard.md)
-        — Guidelines to write proper code.  
-    [__Contribution guidelines__](CONTRIBUTING.md)
-        — The different ways to contribute to ScenarioRunner.
-  </p>
+[**Code of conduct**](<CODE_OF_CONDUCT>) — Standard rights and duties for contributors.<br>
+
+[**Coding standard**](<coding_standard>) — Guidelines to write proper code.<br>
+
+[**Contribution guidelines**](<CONTRIBUTING>) — The different ways to contribute to ScenarioRunner.<br>
 

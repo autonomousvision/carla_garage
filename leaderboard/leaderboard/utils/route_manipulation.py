@@ -12,9 +12,8 @@ It also contains functions to convert the CARLA world location do GPS coordinate
 
 import math
 import xml.etree.ElementTree as ET
-
+from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 from agents.navigation.global_route_planner import GlobalRoutePlanner
-from agents.navigation.global_route_planner_dao import GlobalRoutePlannerDAO
 from agents.navigation.local_planner import RoadOption
 
 
@@ -98,12 +97,17 @@ def downsample_route(route, sample_factor):
     for i, point in enumerate(route):
         curr_option = point[1]
 
-        # Lane changing
-        if curr_option in (RoadOption.CHANGELANELEFT, RoadOption.CHANGELANERIGHT):
+        # At the beginning
+        if prev_option is None:
             ids_to_sample.append(i)
             dist = 0
 
-        # When road option changes
+        # Lane changing
+        elif curr_option in (RoadOption.CHANGELANELEFT, RoadOption.CHANGELANERIGHT):
+            ids_to_sample.append(i)
+            dist = 0
+
+        # When entering or exitting intersections
         elif prev_option != curr_option and prev_option not in (RoadOption.CHANGELANELEFT, RoadOption.CHANGELANERIGHT):
             ids_to_sample.append(i)
             dist = 0
@@ -129,30 +133,31 @@ def downsample_route(route, sample_factor):
     return ids_to_sample
 
 
-def interpolate_trajectory(world, waypoints_trajectory, hop_resolution=1.0):
+def interpolate_trajectory(waypoints_trajectory, hop_resolution=1.0):
     """
     Given some raw keypoints interpolate a full dense trajectory to be used by the user.
     returns the full interpolated route both in GPS coordinates and also in its original form.
     
     Args:
-        - world: an reference to the CARLA world so we can use the planner
         - waypoints_trajectory: the current coarse trajectory
-        - hop_resolution: is the resolution, how dense is the provided trajectory going to be made
+        - hop_resolution: distance between the trajectory's waypoints
     """
 
-    dao = GlobalRoutePlannerDAO(world.get_map(), hop_resolution)
-    grp = GlobalRoutePlanner(dao)
-    grp.setup()
+    grp = GlobalRoutePlanner(CarlaDataProvider.get_map(), hop_resolution)
     # Obtain route plan
+    lat_ref, lon_ref = _get_latlon_ref(CarlaDataProvider.get_world())
+
     route = []
-    for i in range(len(waypoints_trajectory) - 1):   # Goes until the one before the last.
+    gps_route = []
+
+    for i in range(len(waypoints_trajectory) - 1):
 
         waypoint = waypoints_trajectory[i]
         waypoint_next = waypoints_trajectory[i + 1]
         interpolated_trace = grp.trace_route(waypoint, waypoint_next)
-        for wp_tuple in interpolated_trace:
-            route.append((wp_tuple[0].transform, wp_tuple[1]))
+        for wp, connection in interpolated_trace:
+            route.append((wp.transform, connection))
+            gps_coord = _location_to_gps(lat_ref, lon_ref, wp.transform.location)
+            gps_route.append((gps_coord, connection))
 
-    lat_ref, lon_ref = _get_latlon_ref(world)
-
-    return location_route_to_gps(route, lat_ref, lon_ref), route
+    return gps_route, route

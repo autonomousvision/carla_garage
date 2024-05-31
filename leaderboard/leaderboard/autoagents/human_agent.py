@@ -7,11 +7,8 @@
 This module provides a human agent to control the ego vehicle via keyboard
 """
 
-import time
-import json
-from threading import Thread
-import cv2
 import numpy as np
+import json
 
 try:
     import pygame
@@ -42,10 +39,14 @@ class HumanInterface(object):
     Class to control a vehicle manually for debugging purposes
     """
 
-    def __init__(self):
-        self._width = 800
-        self._height = 600
+    def __init__(self, width, height, side_scale, left_mirror=False, right_mirror=False):
+        self._width = width
+        self._height = height
+        self._scale = side_scale
         self._surface = None
+
+        self._left_mirror = left_mirror
+        self._right_mirror = right_mirror
 
         pygame.init()
         pygame.font.init()
@@ -58,11 +59,31 @@ class HumanInterface(object):
         Run the GUI
         """
 
-        # process sensor data
+        # Process sensor data
         image_center = input_data['Center'][1][:, :, -2::-1]
-
-        # display image
         self._surface = pygame.surfarray.make_surface(image_center.swapaxes(0, 1))
+
+        # Add the left mirror
+        if self._left_mirror:
+            image_left = input_data['Left'][1][:, :, -2::-1]
+            left_surface = pygame.surfarray.make_surface(image_left.swapaxes(0, 1))
+            self._surface.blit(left_surface, (0, (1 - self._scale) * self._height))
+
+        # Add the right mirror
+        if self._right_mirror:
+            image_right = input_data['Right'][1][:, :, -2::-1]
+            right_surface = pygame.surfarray.make_surface(image_right.swapaxes(0, 1))
+            self._surface.blit(right_surface, ((1 - self._scale) * self._width, (1 - self._scale) * self._height))
+
+        # Display image
+        if self._surface is not None:
+            self._display.blit(self._surface, (0, 0))
+        pygame.display.flip()
+
+    def set_black_screen(self):
+        """Set the surface to black"""
+        black_array = np.zeros([self._width, self._height])
+        self._surface = pygame.surfarray.make_surface(black_array)
         if self._surface is not None:
             self._display.blit(self._surface, (0, 0))
         pygame.display.flip()
@@ -87,9 +108,23 @@ class HumanAgent(AutonomousAgent):
         self.track = Track.SENSORS
 
         self.agent_engaged = False
-        self._hic = HumanInterface()
+        self.camera_width = 1280
+        self.camera_height = 720
+        self._side_scale = 0.3
+        self._left_mirror = False
+        self._right_mirror = False
+
+        self._hic = HumanInterface(
+            self.camera_width,
+            self.camera_height,
+            self._side_scale,
+            self._left_mirror,
+            self._right_mirror
+        )
         self._controller = KeyboardControl(path_to_conf_file)
         self._prev_timestamp = 0
+
+        self._clock = pygame.time.Clock()
 
     def sensors(self):
         """
@@ -111,9 +146,20 @@ class HumanAgent(AutonomousAgent):
 
         sensors = [
             {'type': 'sensor.camera.rgb', 'x': 0.7, 'y': 0.0, 'z': 1.60, 'roll': 0.0, 'pitch': 0.0, 'yaw': 0.0,
-             'width': 800, 'height': 600, 'fov': 100, 'id': 'Center'},
-            {'type': 'sensor.speedometer', 'reading_frequency': 20, 'id': 'speed'},
+             'width': self.camera_width, 'height': self.camera_height, 'fov': 100, 'id': 'Center'},
         ]
+
+        if self._left_mirror:
+            sensors.append(
+                {'type': 'sensor.camera.rgb', 'x': 0.7, 'y': -1.0, 'z': 1, 'roll': 0.0, 'pitch': 0.0, 'yaw': 210.0,
+                 'width': self.camera_width * self._side_scale, 'height': self.camera_height * self._side_scale,
+                 'fov': 100, 'id': 'Left'})
+
+        if self._right_mirror:
+            sensors.append(
+                {'type': 'sensor.camera.rgb', 'x': 0.7, 'y': 1.0, 'z': 1, 'roll': 0.0, 'pitch': 0.0, 'yaw': 150.0,
+                 'width': self.camera_width * self._side_scale, 'height': self.camera_height * self._side_scale,
+                 'fov': 100, 'id': 'Right'})
 
         return sensors
 
@@ -121,6 +167,7 @@ class HumanAgent(AutonomousAgent):
         """
         Execute one step of navigation.
         """
+        self._clock.tick_busy_loop(20)
         self.agent_engaged = True
         self._hic.run_interface(input_data)
 
@@ -133,6 +180,7 @@ class HumanAgent(AutonomousAgent):
         """
         Cleanup
         """
+        self._hic.set_black_screen()
         self._hic._quit = True
 
 
@@ -219,7 +267,7 @@ class KeyboardControl(object):
                     self._control.reverse = self._control.gear < 0
 
         if keys[K_UP] or keys[K_w]:
-            self._control.throttle = 0.6
+            self._control.throttle = 0.8
         else:
             self._control.throttle = 0.0
 
@@ -231,7 +279,6 @@ class KeyboardControl(object):
         else:
             self._steer_cache = 0.0
 
-        steer_cache = min(0.95, max(-0.95, self._steer_cache))
         self._control.steer = round(self._steer_cache, 1)
         self._control.brake = 1.0 if keys[K_DOWN] or keys[K_s] else 0.0
         self._control.hand_brake = keys[K_SPACE]

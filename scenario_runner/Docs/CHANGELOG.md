@@ -1,5 +1,8 @@
 ## Table of Contents
 * [Latest Changes](#latest-changes)
+* [CARLA ScenarioRunner 0.9.13](#carla-scenariorunner-0913)
+* [CARLA ScenarioRunner 0.9.12](#carla-scenariorunner-0912)
+* [CARLA ScenarioRunner 0.9.11](#carla-scenariorunner-0911)
 * [CARLA ScenarioRunner 0.9.10](#carla-scenariorunner-0910)
 * [CARLA ScenarioRunner 0.9.9](#carla-scenariorunner-099)
 * [CARLA ScenarioRunner 0.9.8](#carla-scenariorunner-098)
@@ -9,7 +12,164 @@
 * [CARLA ScenarioRunner 0.9.5](#carla-scenariorunner-095)
 * [CARLA ScenarioRunner 0.9.2](#carla-scenariorunner-092)
 
-## Latest Changes
+## Latest changes
+### :rocket: New Features
+
+* New scenarios:
+    - InvadingTurn: vehicles at the opposite direction lane partially invade the ego's one, forcing it to leave space for them,moving slightly off-center.
+    - EnterActorFlow: the ego has to enter a highway lane filled with incoming traffic
+    - MergerIntoslowtraffic. variation of `EnterActorFlow` but with slow traffic.
+    - InterurbanActorFlow and InterurbanAdvancedActorFlow: actor flow scenarios for the new interurban intersections with dedicated lanes present at Town12 and Town13.
+    - Accident: the ego is met with an accident, forcing it to lane change to avoid it.
+    - AccidentTwoWays:  same as `Accident` but having to invade an opposite direction lane.
+    - ParkedObstacle: similar to `Accident` but with a parked obstacle instead.
+    - ParkedObstacleTwoWays:  same as `ParkedObstacle` but having to invade an opposite direction lane.
+    - HazardAtSideLane: similar to `Accident` but with a moving group of bicycles in the rightmost park of the lane
+    - HazardAtSideLaneTwoWays:  same as `HazardAtSideLane` but having to invade an opposite direction lane.
+    - ConstructionObstacleTwoWays: same as `ConstructionObstacle` but having to invade an opposite direction lane.
+    - VehicleOpensDoorTwoWays: similar to `Accident` but this time the blockage is cause by a vehicle opening its door.
+    - StaticCutIn: the ego is meant with an adversary that exits a stopped lane, cutting in front of the ego.
+    - ParkingCutIn: similar to `StaticCutIn` but the adversary starts at a parking lane.
+    - HighwayCutIn: the ego is met with a vehicle that tries to enter the highway by cutting in front of it.
+    - ParkingExit: Only usable at the beginning of the routes, makes the ego start at a parking lane.
+    - HardBreakRoute: uses the BackgroundActivity to make all vehicles in front of the ego hard break.
+    - YieldToEmergencyVehicle: the ego finds an emergency vehicle behind, having to lane chane to give way.
+    - VehicleTurningRoutePedestrian: variation of `VehicleTurningRoute` but with a pedestrian crossing instead of a bycicle.
+    - BlockedIntersection: with low visibility, the ego performs a turn only to find out that the end is blocked by another vehicle.
+    - CrossingBicycleFlow: the ego has to do a turn at an intersection but it has to cross a bycicle lane full of traffic.
+    - PedestrianCrossing: a group of pedestrians crossing a crosswalk. Easier version of `DynamicObjectCrossing` with no occluder.
+    - ParkingCrossingPedestrian: variation of `DynamicObjectCrossing`, but using a parked vehicle as the occluder.
+    - OppositeVehicleTakingPriority: variation of `OppositeVehicleRunningRedLight` but without traffic lights.
+    - NonSignalizedJunctionLeftTurn: variation of `SignalizedJunctionLeftTurn` but without traffic lights.
+    - NonSignalizedJunctionRightTurn: variation of `SignalizedJunctionRightTurn` but without traffic lights.
+    - PriorityAtJunction: utility scenario during routes to add a green traffic light at the next intersection.
+    - NoSignalJunctionCrossingRoute: Does nothing but wait for the ego to exit an intersection.
+* Improvements to old scenarios:
+    - ControlLoss: Added actual noise to the ego's control (currently only during routes).
+    - All VehicleTurning variations: more robustness and better synchronization.
+    - OppositeVehicleRunningRedLight: Improvement synchronization and the opposite vehicle's behavior.
+    - SignalizedJunctionLeftTurn: it is now an actor flow that ego has to cross.
+    - SignalizedJunctionRightTurn. it is now an actor flow that the ego has to merge into.
+    - Renamed `ConstructionSetupCrossing` to `ConstructionObstacle`, and prepared it for routes.
+* Improvements to the CarlaDataProvider:
+    - Added a lock when checking the dictionaries to avoid issues in multithreading
+    - Added the `transform` argument to all register function to avoid returning None during the first frame
+    - Added the `get_global_route_planner` and `get_all_actors` to avoid repeating these costly calls more than necessary
+    - Added `set_runtime_init_mode` and `is_runtime_init_mode`, used by the Leaderboard to initialize scenarios during the simulation
+    - At the `create_blueprint` function, replaced the `safe` argument with the `attribute_filter`, for a more generic parsing of any of the blueprint attributes.
+    - Removed the `CarlaDataProvider.get_ego_vehicle_route()` and `CarlaDataProvider.set_ego_vehicle_route()` functions as this is now information available to all scenarios.
+* Improvements to the routes:
+    - Scenarios are no longer position based, but instead part of a route's xml.
+    - Routes now also include the criteria of its scenarios.
+    - `waypoint` have been renamed to `position` and are part of the `waypoints` category.
+    - More than one `weather` are allowed, creating a dynamic one based on the ego vehicle's completed percentage of the route.
+    - Changed the timeout to also be dependent on the distance driven by the ego vehicle.
+    - Added the `RouteLightsBehavior` to control of all scene and vehicle lights during runtime
+    - Added a new criteria for routes, `CheckMinSpeed`, that checks the ego's speed and compares it with the rest of the traffic
+    - Separated the route argument into two, `route` for the file path, and `route-id`, for the name of route. the functionality remains unchanged.
+    - Simplified the overall parsing.
+* The BackgroundActivity part of the routes has been completely remade, with the objective of creating the sensation of traffic around the ego will increasing the performance
+* Added a Backgroundmanager to interact with the new BackgroundActivity, to allow it to adapt to incoming scenarios
+* Added new atomic behaviors:
+    - SyncArrivalWithAgent
+    - CutIn
+    - AddNoiseToRouteEgo
+    - ConstantVelocityAgentBehavior
+    - AdaptiveConstantVelocityAgentBehavior
+    - WaitForever
+    - BatchActorTransformSetter
+    - OppositeActorFlow
+    - InvadingActorFlow
+    - BicycleFlow
+    - OpenVehicleDoor
+    - SwitchWrongDirectionTest
+    - SwitchMinSpeedCriteria
+    - WalkerFlow
+    - AIWalkerBehavior
+    - ScenarioTimeout
+    - MovePedestrianWithEgo
+* Improved the Criterion class for a more comprehensive base criteria and easier use in the `results_writer` class.
+* Added new atomic criteria:
+    - MinimumSpeedRouteTest
+    - YieldToEmergencyVehicleTest
+    - ScenarioTimeoutTest
+* Added new atomic trigger conditions
+    - WaitUntilInFrontPosition
+* Merged the `Scenario` class into the `BasicScenario` one.
+* Scenarios can now have parameters as part of the their xml definition, which is saved as a dictionary at `config.other_parameters`
+* Simplified and improved how routes are parsed.
+* Added the `wait-for-repetitions` argument at the manual control for a smoother transition between scenarios / repetitions
+* Updated numpy's version to avoid issues with newer version of Python 3
+
+### :bug: Bug Fixes
+* Fixed bug at OtherLeadingVehicle scenario causing the vehicles to move faster than intended
+* Fixed bug causing some debris at ControlLoss scenario to be floating, instead of at ground level
+
+## CARLA ScenarioRunner 0.9.13
+### :rocket: New Features
+* OpenSCENARIO support:
+    - Added support for `ParameterAction`
+    - Extended `ParameterCondition` support to use as an event trigger condition
+
+### :bug: Bug Fixes
+* Fixed metrics parsing and remade the example recordings
+* Fixed a bug with repetitions / scenario groups causing the simulation to crash after the second one.
+* Fixed use of OSC Parameters as entry names for catalogs
+
+### :ghost: Maintenance
+* Removed CARLA example dependencies
+
+## CARLA ScenarioRunner 0.9.12
+### :rocket: New Features
+* OpenSCENARIO support:
+    - Added support for LongitudinalDistanceAction
+    - Extended RelativeDistanceCondition with support for 'longitudinal' and 'lateral' distance along with freespace.
+    - Added support for RelativeRoadPosition
+    - Added support for RoadPosition
+    - Added `--openscenarioparams` argument to overwrite global `ParameterDeclaration`
+    - Added controller using CARLA's autopilot (in replacement for ActivateControllerAction)
+    - Added support for storyboards with multiple stories
+    - Eliminated unnecessary reloads of OpenDRIVE maps
+* Additional Scenarios:
+    - Added Construction setup scenario.
+### :bug: Bug Fixes
+* Fixed LaneOffset (+ vs. -) for OpenSCENARIO
+* Fixed RelativeLanePosition for OpenSCENARIO causing exception when using ds != 0
+* Fixed bug at the Getting Started docs which caused an import error
+* Fixed neverending lane change maneuver in OpenSCENARIO
+* Fixed bug causing the spawning of an actor with `request_new_actor` to never activate the autopilot.
+* Fixed handling of evaluation criteria in OpenSCENARIO (using a delay value of .0 caused an exception)
+### :ghost: Maintenance
+* Extended SimpleVehicleController (OSC) to handle traffic lights
+* Generalized visualizer attached to OSC controllers
+* Fixed bug at the Getting Started docs which caused an import error
+* Improved the watchdog. It can now be paused, resumed and uses the same thread, instead of opening and closing new ones each frame.
+* Added `simple-watchdog-timer` library to the requirements, as it is used by the new watchdog. This requires Python 3.x from now on!
+* Extended CarlaDataProvider's spawning functions to allow filtering the safer blueprint, and optionally tick the server
+* Improved cleanup handling to resolve memory leak issues and resolve timeouts
+
+## CARLA ScenarioRunner 0.9.11
+### :rocket: New Features
+* Added a sensor barrier for the agents to ensure that the simulation waits for them to render their data.
+* Added an option to produce a machine-readable JSON version of the scenario report.
+* Added a static obstacle evasion OpenSCENARIO scenario
+* Added support for OSC Routing options
+* Added support for OSC SynchronizeAction
+* Added support for OSC LaneOffsetAction
+* Added support to place OSC controller implementation alongside the OSC scenario
+* Updated *GameTime.restart()* at *srunner/scenariomanager/timer.py* to also reset the frame number
+### :bug: Bug Fixes
+* Fixed metrics-manager.py failing to run with port argument
+* Fixed exception when using OSC scenarios without EnvironmentAction inside Storyboard-Init
+* Fixed bug causing the TrafficManager to not be correctly updated at asynchronous simualtions
+* Fixed shutdown issue in ScenarioRunner causing to not switch to asynchronous mode
+* Fixed OSC TeleportAction within Story
+* Fixed runtime exception on RouteScenario without an agent parameter 
+* Fixed bug causing the InTimeToArrivalToVehicle atomic to crash if one of the actors was a a static object
+* Fixed writing result files when using OpenSCENARIO under Windows (CARLA: prefix is removed from the filename)
+### :ghost: Maintenance
+* Added check to ensure OSC names (for story/act/maneuver) are unique
+
 
 ## CARLA ScenarioRunner 0.9.10
 ### :rocket: New Features
@@ -50,6 +210,7 @@
     - Added support for AcquirePositionAction
     - Extended FollowLeadingVehicle example to illustrate weather changes
     - Created example scenarios to illustrate usage of controllers and weather changes
+    - Extended LaneChangeAction to allow lane changes of multiple lanes
     - Reworked the handling of Catalogs to make it compliant to the 1.0 version (relative paths have to be relative to the scenario file)
     - The RoadNetwork can be defined as global Parameter
     - Fixed handling of relative positions with negative offset
@@ -77,6 +238,7 @@
     - InTimeToArrivalToVehicle has had its two actor arguments swapped, to match all the other behaviors.
     - Added *along_route* flag to InTimeToArrivalToVehicle, to take into account the topology of the road
     - Changed the inputs to TrafficLightStateSetter to match the other atomics, but the functionality remains unchanged
+    - Improved LaneChange atomic to allow lane changes of multiple lanes
 
 ### :bug: Bug Fixes
 * Fixed bug causing parsing RelativeTargetSpeed tag to fail. 
@@ -100,6 +262,8 @@
 * Fixed bug with ending roads near stop signals to break the simulation
 * Fixed exception bug in spawn function of CarlaDataProvider
 * Fixed access to private member of CARLA LocalPlanner inside OSC NpcVehicleControl
+* Fixed bug causing LaneChange to break the simulation if the asked lane change was impossible, instead of correctly stopping it
+* Fixed bug causing ChangeLane scenarios to never end
 * Fixed handling of OSC LanePosition (#625)
 * Fixed bug causing the route repetitions to spawn different background activity
 * Fixed bug causing the rotate_point function inside RunningRedLightTest to not function properly.
@@ -114,6 +278,8 @@
     - Added support to use a non-CARLA OpenDRIVE map (instead of CARLA towns)
     - Added support for TimeOfDay tag
     - Added support for scenarios with no actors
+    - Added support for TimeToCollisionCondition with freespace.
+    - Added support for TimeHeadwayCondition with freespace.
 * Scenario updates:
     - Scenarios that are part of RouteScenario have had their triggering condition modified. This will only activate when a certain parameter is set, and if not, the old trigger condition will still be applied.
 * Atomics:
@@ -368,3 +534,4 @@
     - WaitForTrafficLightState: wait for the traffic light to have a given state
     - SyncArrival: sync the arrival of two vehicles to a given target
     - AddNoiseToVehicle: Add noise to steer as well as throttle of the vehicle
+    - CutInWithStaticVehicle:Based on the code of ParkingCutIn,realized the cutin function of a static vehicle on the highway

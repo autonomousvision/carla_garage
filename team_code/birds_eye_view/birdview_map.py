@@ -19,6 +19,10 @@ from server_utils import CarlaServerManager
 
 COLOR_WHITE = (255, 255, 255)
 
+def chunks(lst, n):
+    """Yield successive n-sized chunks from lst."""
+    for i in range(0, len(lst), n):
+        yield lst[i:i + n]
 
 class MapImage(object):
   """
@@ -39,6 +43,13 @@ class MapImage(object):
     width_in_meters = max(max_x - min_x, max_y - min_y)
     width_in_pixels = round(pixels_per_meter_local * width_in_meters)
 
+    print(width_in_pixels)
+    print(width_in_meters)
+
+    topology = [x[0] for x in carla_map_local.get_topology()]
+    topology = sorted(topology, key=lambda w: w.transform.location.z)
+
+    print(len(topology))
     road_surface = pygame.Surface((width_in_pixels, width_in_pixels))
     shoulder_surface = pygame.Surface((width_in_pixels, width_in_pixels))
     parking_surface = pygame.Surface((width_in_pixels, width_in_pixels))
@@ -49,10 +60,9 @@ class MapImage(object):
     lane_marking_white_solid_surface = pygame.Surface((width_in_pixels, width_in_pixels))
     lane_marking_all_surface = pygame.Surface((width_in_pixels, width_in_pixels))
 
-    topology = [x[0] for x in carla_map_local.get_topology()]
-    topology = sorted(topology, key=lambda w: w.transform.location.z)
-
-    for waypoint in topology:
+    
+    for i, waypoint in enumerate(topology):
+      print(f'{i}/{len(topology)}')
       waypoints = [waypoint]
       # Generate waypoints of a road id. Stop when road id differs
       nxt = waypoint.next(precision)
@@ -69,6 +79,8 @@ class MapImage(object):
       shoulder = [[], []]
       parking = [[], []]
       sidewalk = [[], []]
+
+      print('Inner loop')
 
       for w in waypoints:
         # Classify lane types until there are no waypoints by going left
@@ -92,6 +104,8 @@ class MapImage(object):
             sidewalk[1].append(r)
           r = r.get_right_lane()
 
+      print('draw lanes')
+
       MapImage.draw_lane(road_surface, waypoints, COLOR_WHITE, pixels_per_meter_local, world_offset)
 
       MapImage.draw_lane(sidewalk_surface, sidewalk[0], COLOR_WHITE, pixels_per_meter_local, world_offset)
@@ -100,20 +114,24 @@ class MapImage(object):
       MapImage.draw_lane(shoulder_surface, shoulder[1], COLOR_WHITE, pixels_per_meter_local, world_offset)
       MapImage.draw_lane(parking_surface, parking[0], COLOR_WHITE, pixels_per_meter_local, world_offset)
       MapImage.draw_lane(parking_surface, parking[1], COLOR_WHITE, pixels_per_meter_local, world_offset)
+      print('if statement')
 
       if not waypoint.is_junction:
+        print('In if statement')
         MapImage.draw_lane_marking_single_side(lane_marking_yellow_broken_surface, lane_marking_yellow_solid_surface,
                                                lane_marking_white_broken_surface, lane_marking_white_solid_surface,
                                                lane_marking_all_surface, waypoints, -1, pixels_per_meter_local,
                                                world_offset)
+        print('Middle of if statement')
         MapImage.draw_lane_marking_single_side(lane_marking_yellow_broken_surface, lane_marking_yellow_solid_surface,
                                                lane_marking_white_broken_surface, lane_marking_white_solid_surface,
                                                lane_marking_all_surface, waypoints, 1, pixels_per_meter_local,
                                                world_offset)
-
+      print('Loop iteration done')
+    print('done with waypoints loop')
     # stoplines
     stopline_surface = pygame.Surface((width_in_pixels, width_in_pixels))
-
+    print('start stoplien loop')
     for stopline_vertices in TrafficLightHandler.list_stopline_vtx:
       for loc_left, loc_right in stopline_vertices:
         stopline_points = [
@@ -121,11 +139,11 @@ class MapImage(object):
             MapImage.world_to_pixel(loc_right, pixels_per_meter_local, world_offset)
         ]
         MapImage.draw_line(stopline_surface, stopline_points, 2)
-
+    print('done with stopline loop')
     # np.uint8 mask
     def _make_mask(x):
       return pygame.surfarray.array3d(x)[..., 0].astype(np.uint8)
-
+    print('make a dict')
     # make a dict
     dict_masks_local = {
         'road': _make_mask(road_surface),
@@ -159,6 +177,7 @@ class MapImage(object):
 
     markings_list = []
     temp_waypoints = []
+    print(f'len(waypoints): {len(waypoints)}')
     for sample in waypoints:
       lane_marking = sample.left_lane_marking if sign < 0 else sample.right_lane_marking
 
@@ -185,21 +204,35 @@ class MapImage(object):
     # Add last marking
     last_markings = MapImage.get_lane_markings(previous_marking_type, previous_marking_color, temp_waypoints, sign,
                                                pixels_per_meter_local, world_offset)
+    print(f'last markings loop. len: {len(last_markings)}')
     for marking in last_markings:
       markings_list.append(marking)
 
     # Once the lane markings have been simplified to Solid or Broken lines, we draw them
-    for markings in markings_list:
+    print(f'markings list loop. len: {len(markings_list)}')
+    i = 0
+    for markings in markings_list:  # markings is a 3-tuple of (carla.libcarla.LaneMarkingType, carla.libcarla.LaneMarkingColor, list of waypoint pairs)
+      print(f'markings number: {i}')
+      i=i+1
+      print(f'len(markings[2]): {len(markings[2])}')
       if markings[1] == carla.LaneMarkingColor.White and markings[0] == carla.LaneMarkingType.Solid:
+        print('first line')
         MapImage.draw_line(lane_marking_white_solid_surface, markings[2], 1)
       elif markings[1] == carla.LaneMarkingColor.Yellow and markings[0] == carla.LaneMarkingType.Solid:
+        print('2nd line')
         MapImage.draw_line(lane_marking_yellow_solid_surface, markings[2], 1)
       elif markings[1] == carla.LaneMarkingColor.White and markings[0] == carla.LaneMarkingType.Broken:
+        print('3rd line')
         MapImage.draw_line(lane_marking_white_broken_surface, markings[2], 1)
       elif markings[1] == carla.LaneMarkingColor.Yellow and markings[0] == carla.LaneMarkingType.Broken:
+        print('4th line')
         MapImage.draw_line(lane_marking_yellow_broken_surface, markings[2], 1)
 
-      MapImage.draw_line(lane_marking_all_surface, markings[2], 1)
+      print('final line')
+      for i, chunk in enumerate(chunks(markings[2], 1000)):
+        print(f'chunk {i}')
+        MapImage.draw_line(lane_marking_all_surface, chunk, 1)
+
 
   @staticmethod
   def get_lane_markings(lane_marking_type, lane_marking_color, waypoints, sign, pixels_per_meter_local, world_offset):
@@ -267,22 +300,22 @@ class MapImage(object):
 
 if __name__ == '__main__':
   parser = argparse.ArgumentParser()
-  parser.add_argument('--save_dir', default='carla_gym/core/obs_manager/birdview/maps')
-  parser.add_argument('--pixels_per_meter', type=float, default=5.0)
-  parser.add_argument('--carla_sh_path', default='/home/ubuntu/apps/carla/carla994/CarlaUE4.sh')
+  parser.add_argument('--save_dir', default='birds_eye_view/maps')
+  parser.add_argument('--pixels_per_meter', type=float, default=4.0)
+  parser.add_argument('--carla_sh_path', default='~/software/CARLA_Leaderboard_20/CarlaUE4.sh')
   # Those maps in the repo are generated using calra 0.9.9.4.
   # The maps have been slightly changed in carla 0.9.10/0.9.11
 
   args = parser.parse_args()
 
   # kill running carla server
-  with subprocess.Popen('killall -9 -r CarlaUE4-Linux', shell=True) as kill_process:
-    kill_process.wait()
-  time.sleep(1)
+  #with subprocess.Popen('killall -9 -r CarlaUE4-Linux', shell=True) as kill_process:
+  #  kill_process.wait()
+  #time.sleep(1)
 
-  env_config = OmegaConf.load('endless_all.yaml')
-  server_manager = CarlaServerManager(args.carla_sh_path, configs=env_config)
-  server_manager.start()
+  env_config = OmegaConf.load('birds_eye_view/endless_all.yaml')
+  server_manager = CarlaServerManager(args.carla_sh_path, port=2000, configs=env_config)
+  #server_manager.start()
 
   save_dir = Path(args.save_dir)
   save_dir.mkdir(parents=True, exist_ok=True)
@@ -306,11 +339,15 @@ if __name__ == '__main__':
         print(f'{carla_map}.h5 with pixels_per_meter={pixels_per_meter:.2f} already exists.')
         continue
 
-    client = carla.Client('localhost', cfg['port'])
+    client = carla.Client('localhost', port=6255)#cfg['port'])
+    time.sleep(2)
     client.set_timeout(1000)
+    #print(cfg['port'])
+    print('Get maps')
+    print(client.get_available_maps())
     print(f'Generating {carla_map}.h5 with pixels_per_meter={pixels_per_meter:.2f}.')
     world = client.load_world(carla_map)
-
+    print('Loaded world. Drawing map image')
     dict_masks = MapImage.draw_map_image(world.get_map(), pixels_per_meter)
 
     with h5py.File(hf_file_path, 'w') as hf:
@@ -341,4 +378,6 @@ if __name__ == '__main__':
                         compression='gzip',
                         compression_opts=9)
 
-  server_manager.stop()
+    break
+  print('Stopping server')
+  #server_manager.stop()

@@ -9,35 +9,45 @@ Collection of traffic scenarios where the ego vehicle (hero)
 is making a left turn
 """
 
-from six.moves.queue import Queue  # pylint: disable=relative-import
-
 import py_trees
+from numpy import random
+
 import carla
-from agents.navigation.local_planner import RoadOption
 
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
-from srunner.scenariomanager.scenarioatomics.atomic_behaviors import (ActorTransformSetter,
-                                                                      ActorDestroy,
-                                                                      ActorSource,
-                                                                      ActorSink,
-                                                                      WaypointFollower)
-from srunner.scenariomanager.scenarioatomics.atomic_criteria import CollisionTest
-from srunner.scenariomanager.scenarioatomics.atomic_trigger_conditions import DriveDistance
+from srunner.scenariomanager.scenarioatomics.atomic_behaviors import ActorFlow, TrafficLightFreezer, ScenarioTimeout
+from srunner.scenariomanager.scenarioatomics.atomic_trigger_conditions import WaitEndIntersection, DriveDistance
+from srunner.scenariomanager.scenarioatomics.atomic_criteria import CollisionTest, ScenarioTimeoutTest
 from srunner.scenarios.basic_scenario import BasicScenario
-from srunner.tools.scenario_helper import generate_target_waypoint
+from srunner.tools.scenario_helper import (generate_target_waypoint,
+                                           get_junction_topology,
+                                           filter_junction_wp_direction,
+                                           get_same_dir_lanes,
+                                           get_closest_traffic_light)
+
+from srunner.tools.background_manager import HandleJunctionScenario, ChangeOppositeBehavior
+
+def get_value_parameter(config, name, p_type, default):
+    if name in config.other_parameters:
+        return p_type(config.other_parameters[name]['value'])
+    else:
+        return default
+
+def get_interval_parameter(config, name, p_type, default):
+    if name in config.other_parameters:
+        return [
+            p_type(config.other_parameters[name]['from']),
+            p_type(config.other_parameters[name]['to'])
+        ]
+    else:
+        return default
 
 
-class SignalizedJunctionLeftTurn(BasicScenario):
-
+class JunctionLeftTurn(BasicScenario):
     """
-    Implementation class for Hero
-    Vehicle turning left at signalized junction scenario,
-    Traffic Scenario 08.
-
-    This is a single ego vehicle scenario
+    Vehicle turning left at junction scenario, with actors coming in the opposite direction.
+    The ego has to react to them, safely crossing the opposite lane
     """
-
-    timeout = 80  # Timeout of scenario in seconds
 
     def __init__(self, world, ego_vehicles, config, randomize=False, debug_mode=False, criteria_enable=True,
                  timeout=80):
@@ -46,105 +56,216 @@ class SignalizedJunctionLeftTurn(BasicScenario):
         """
         self._world = world
         self._map = CarlaDataProvider.get_map()
-        self._target_vel = 6.9
-        self._brake_value = 0.5
-        self._ego_distance = 110
-        self._traffic_light = None
-        self._other_actor_transform = None
-        self._blackboard_queue_name = 'SignalizedJunctionLeftTurn/actor_flow_queue'
-        self._queue = py_trees.blackboard.Blackboard().set(self._blackboard_queue_name, Queue())
-        self._initialized = True
-        super(SignalizedJunctionLeftTurn, self).__init__("TurnLeftAtSignalizedJunction",
-                                                         ego_vehicles,
-                                                         config,
-                                                         world,
-                                                         debug_mode,
-                                                         criteria_enable=criteria_enable)
+        self._rng = CarlaDataProvider.get_random_seed()
 
-        self._traffic_light = CarlaDataProvider.get_next_traffic_light(self.ego_vehicles[0], False)
-        traffic_light_other = CarlaDataProvider.get_next_traffic_light(self.other_actors[0], False)
-        if self._traffic_light is None or traffic_light_other is None:
-            raise RuntimeError("No traffic light for the given location found")
-        self._traffic_light.set_state(carla.TrafficLightState.Green)
-        self._traffic_light.set_green_time(self.timeout)
-        # other vehicle's traffic light
-        traffic_light_other.set_state(carla.TrafficLightState.Green)
-        traffic_light_other.set_green_time(self.timeout)
+        self.timeout = timeout
+
+        self._direction = 'opposite'
+
+        self._green_light_delay = 5  # Wait before the ego's lane traffic light turns green
+        self._flow_tl_dict = {}
+        self._init_tl_dict = {}
+        self._end_distance = 10
+
+        self._flow_speed = get_value_parameter(config, 'flow_speed', float, 20)
+        self._source_dist_interval = get_interval_parameter(config, 'source_dist_interval', float, [25, 50])
+        self._scenario_timeout = 240
+
+        # The faster the flow, the further they are spawned, leaving time to react to them
+        self._source_dist = 4 * self._flow_speed
+        self._sink_dist = 2.5 * self._flow_speed
+
+        super().__init__("JunctionLeftTurn",
+                         ego_vehicles,
+                         config,
+                         world,
+                         debug_mode,
+                         criteria_enable=criteria_enable)
 
     def _initialize_actors(self, config):
         """
-        Custom initialization
+        Default initialization of other actors.
+        Override this method in child class to provide custom initialization.
         """
-        self._other_actor_transform = config.other_actors[0].transform
-        first_vehicle_transform = carla.Transform(
-            carla.Location(config.other_actors[0].transform.location.x,
-                           config.other_actors[0].transform.location.y,
-                           config.other_actors[0].transform.location.z - 500),
-            config.other_actors[0].transform.rotation)
-        first_vehicle = CarlaDataProvider.request_new_actor(config.other_actors[0].model, self._other_actor_transform)
-        first_vehicle.set_transform(first_vehicle_transform)
-        first_vehicle.set_simulate_physics(enabled=False)
-        self.other_actors.append(first_vehicle)
+        ego_location = config.trigger_points[0].location
+        self._ego_wp = CarlaDataProvider.get_map().get_waypoint(ego_location)
+
+        # Get the junction
+        starting_wp = self._ego_wp
+        ego_junction_dist = 0
+        while not starting_wp.is_junction:
+            starting_wps = starting_wp.next(1.0)
+            if len(starting_wps) == 0:
+                raise ValueError("Failed to find junction as a waypoint with no next was detected")
+            starting_wp = starting_wps[0]
+            ego_junction_dist += 1
+        self._junction = starting_wp.get_junction()
+
+        # Get the opposite entry lane wp
+        entry_wps, _ = get_junction_topology(self._junction)
+        source_entry_wps = filter_junction_wp_direction(starting_wp, entry_wps, self._direction)
+        if not source_entry_wps:
+            raise ValueError("Trying to find a lane in the {} direction but none was found".format(self._direction))
+
+        # Get the source transform
+        source_entry_wp = self._rng.choice(source_entry_wps)
+
+        # Get the source transform
+        source_wp = source_entry_wp
+        source_junction_dist = 0
+        while source_junction_dist < self._source_dist:
+            source_wps = source_wp.previous(5)
+            if len(source_wps) == 0:
+                raise ValueError("Failed to find a source location as a waypoint with no previous was detected")
+            if source_wps[0].is_junction:
+                break
+            source_wp = source_wps[0]
+            source_junction_dist += 5
+
+        self._source_wp = source_wp
+        source_transform = self._source_wp.transform
+
+        # Get the sink location
+        sink_exit_wp = generate_target_waypoint(self._map.get_waypoint(source_transform.location), 0)
+        sink_wps = sink_exit_wp.next(self._sink_dist)
+        if len(sink_wps) == 0:
+            raise ValueError("Failed to find a sink location as a waypoint with no next was detected")
+        self._sink_wp = sink_wps[0]
 
     def _create_behavior(self):
-        """
-        Hero vehicle is turning left in an urban area,
-        at a signalized intersection, while other actor coming straight
-        .The hero actor may turn left either before other actor
-        passes intersection or later, without any collision.
-        After 80 seconds, a timeout stops the scenario.
-        """
-
-        sequence = py_trees.composites.Sequence("Sequence Behavior")
-
-        # Selecting straight path at intersection
-        target_waypoint = generate_target_waypoint(
-            CarlaDataProvider.get_map().get_waypoint(self.other_actors[0].get_location()), 0)
-        # Generating waypoint list till next intersection
-        plan = []
-        wp_choice = target_waypoint.next(1.0)
-        while not wp_choice[0].is_intersection:
-            target_waypoint = wp_choice[0]
-            plan.append((target_waypoint, RoadOption.LANEFOLLOW))
-            wp_choice = target_waypoint.next(1.0)
-        # adding flow of actors
-        actor_source = ActorSource(
-            ['vehicle.tesla.model3', 'vehicle.audi.tt'],
-            self._other_actor_transform, 15, self._blackboard_queue_name)
-        # destroying flow of actors
-        actor_sink = ActorSink(plan[-1][0].transform.location, 10)
-        # follow waypoints untill next intersection
-        move_actor = WaypointFollower(self.other_actors[0], self._target_vel, plan=plan,
-                                      blackboard_queue_name=self._blackboard_queue_name, avoid_collision=True)
-        # wait
-        wait = DriveDistance(self.ego_vehicles[0], self._ego_distance)
-
-        # Behavior tree
-        root = py_trees.composites.Parallel(
-            policy=py_trees.common.ParallelPolicy.SUCCESS_ON_ONE)
-        root.add_child(wait)
-        root.add_child(actor_source)
-        root.add_child(actor_sink)
-        root.add_child(move_actor)
-
-        sequence.add_child(ActorTransformSetter(self.other_actors[0], self._other_actor_transform))
-        sequence.add_child(root)
-        sequence.add_child(ActorDestroy(self.other_actors[0]))
-
-        return sequence
+        raise NotImplementedError("Found missing behavior")
 
     def _create_test_criteria(self):
         """
         A list of all test criteria will be created that is later used
         in parallel behavior tree.
         """
-        criteria = []
-
-        collison_criteria = CollisionTest(self.ego_vehicles[0])
-        criteria.append(collison_criteria)
-
+        criteria = [ScenarioTimeoutTest(self.ego_vehicles[0], self.config.name)]
+        if not self.route_mode:
+            criteria.append(CollisionTest(self.ego_vehicles[0]))
         return criteria
 
     def __del__(self):
-        self._traffic_light = None
+        """
+        Remove all actors upon deletion
+        """
         self.remove_all_actors()
+
+
+class SignalizedJunctionLeftTurn(JunctionLeftTurn):
+    """
+    Signalized version of 'JunctionLeftTurn`
+    """
+
+    timeout = 80  # Timeout of scenario in seconds
+
+    def __init__(self, world, ego_vehicles, config, randomize=False, debug_mode=False, criteria_enable=True,
+                 timeout=80):
+        super().__init__(world, ego_vehicles, config, randomize, debug_mode, criteria_enable, timeout)
+
+    def _initialize_actors(self, config):
+        """
+        Default initialization of other actors.
+        Override this method in child class to provide custom initialization.
+        """
+        super()._initialize_actors(config)
+
+        tls = self._world.get_traffic_lights_in_junction(self._junction.id)
+        if not tls:
+            raise ValueError("Found no traffic lights, use the non signalized version instead")
+        ego_tl = get_closest_traffic_light(self._ego_wp, tls)
+        source_tl = get_closest_traffic_light(self._source_wp, tls)
+
+        for tl in tls:
+            if tl.id == ego_tl.id:
+                self._flow_tl_dict[tl] = carla.TrafficLightState.Green
+                self._init_tl_dict[tl] = carla.TrafficLightState.Red
+            elif tl.id == source_tl.id:
+                self._flow_tl_dict[tl] = carla.TrafficLightState.Green
+                self._init_tl_dict[tl] = carla.TrafficLightState.Green
+            else:
+                self._flow_tl_dict[tl] = carla.TrafficLightState.Red
+                self._init_tl_dict[tl] = carla.TrafficLightState.Red
+
+    def _create_behavior(self):
+        """
+        Hero vehicle is turning left in an urban area at a signalized intersection,
+        where, a flow of actors coming straight is present.
+        """
+        sequence = py_trees.composites.Sequence(name="SignalizedJunctionLeftTurn")
+        if self.route_mode:
+            sequence.add_child(HandleJunctionScenario(
+                clear_junction=True,
+                clear_ego_entry=True,
+                remove_entries=get_same_dir_lanes(self._source_wp),
+                remove_exits=get_same_dir_lanes(self._sink_wp),
+                stop_entries=False,
+                extend_road_exit=self._sink_dist + 20
+            ))
+            sequence.add_child(ChangeOppositeBehavior(active=False))
+
+        root = py_trees.composites.Parallel(policy=py_trees.common.ParallelPolicy.SUCCESS_ON_ONE)
+        end_condition = py_trees.composites.Sequence()
+        end_condition.add_child(WaitEndIntersection(self.ego_vehicles[0]))
+        end_condition.add_child(DriveDistance(self.ego_vehicles[0], self._end_distance))
+        root.add_child(end_condition)
+        root.add_child(ActorFlow(
+            self._source_wp, self._sink_wp, self._source_dist_interval, 2, self._flow_speed))
+        root.add_child(ScenarioTimeout(self._scenario_timeout, self.config.name))
+
+        tl_freezer_sequence = py_trees.composites.Sequence("Traffic Light Behavior")
+        tl_freezer_sequence.add_child(TrafficLightFreezer(self._init_tl_dict, duration=self._green_light_delay))
+        tl_freezer_sequence.add_child(TrafficLightFreezer(self._flow_tl_dict))
+        root.add_child(tl_freezer_sequence)
+
+        sequence.add_child(root)
+
+        if self.route_mode:
+            sequence.add_child(ChangeOppositeBehavior(active=True))
+
+        return sequence
+
+
+class NonSignalizedJunctionLeftTurn(JunctionLeftTurn):
+    """
+    Non signalized version of 'JunctionLeftTurn`
+    """
+
+    timeout = 80  # Timeout of scenario in seconds
+
+    def __init__(self, world, ego_vehicles, config, randomize=False, debug_mode=False, criteria_enable=True,
+                 timeout=80):
+        super().__init__(world, ego_vehicles, config, randomize, debug_mode, criteria_enable, timeout)
+
+    def _create_behavior(self):
+        """
+        Hero vehicle is turning left in an urban area at a signalized intersection,
+        where, a flow of actors coming straight is present.
+        """
+        sequence = py_trees.composites.Sequence(name="NonSignalizedJunctionLeftTurn")
+        if self.route_mode:
+            sequence.add_child(HandleJunctionScenario(
+                clear_junction=True,
+                clear_ego_entry=True,
+                remove_entries=get_same_dir_lanes(self._source_wp),
+                remove_exits=get_same_dir_lanes(self._sink_wp),
+                stop_entries=True,
+                extend_road_exit=self._sink_dist + 20
+            ))
+            sequence.add_child(ChangeOppositeBehavior(active=False))
+
+        root = py_trees.composites.Parallel(policy=py_trees.common.ParallelPolicy.SUCCESS_ON_ONE)
+        end_condition = py_trees.composites.Sequence()
+        end_condition.add_child(WaitEndIntersection(self.ego_vehicles[0]))
+        end_condition.add_child(DriveDistance(self.ego_vehicles[0], self._end_distance))
+        root.add_child(end_condition)
+        root.add_child(ActorFlow(
+            self._source_wp, self._sink_wp, self._source_dist_interval, 2, self._flow_speed))
+        root.add_child(ScenarioTimeout(self._scenario_timeout, self.config.name))
+
+        sequence.add_child(root)
+
+        if self.route_mode:
+            sequence.add_child(ChangeOppositeBehavior(active=True))
+
+        return sequence

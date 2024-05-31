@@ -27,14 +27,13 @@ import py_trees
 import carla
 
 from agents.navigation.global_route_planner import GlobalRoutePlanner
-from agents.navigation.global_route_planner_dao import GlobalRoutePlannerDAO
 
 from srunner.scenariomanager.scenarioatomics.atomic_behaviors import calculate_distance
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider
 from srunner.scenariomanager.timer import GameTime
-from srunner.tools.scenario_helper import get_distance_along_route
+from srunner.tools.scenario_helper import get_distance_along_route, get_distance_between_actors
 
-import srunner.tools
+import srunner.tools as sr_tools
 
 EPSILON = 0.001
 
@@ -108,10 +107,7 @@ class InTriggerDistanceToOSCPosition(AtomicCondition):
 
         if self._along_route:
             # Get the global route planner, used to calculate the route
-            dao = GlobalRoutePlannerDAO(self._map, 0.5)
-            grp = GlobalRoutePlanner(dao)
-            grp.setup()
-            self._grp = grp
+            self._grp = GlobalRoutePlanner(self._map, 0.5)
         else:
             self._grp = None
 
@@ -126,7 +122,7 @@ class InTriggerDistanceToOSCPosition(AtomicCondition):
         new_status = py_trees.common.Status.RUNNING
 
         # calculate transform with method in openscenario_parser.py
-        osc_transform = srunner.tools.openscenario_parser.OpenScenarioParser.convert_position_to_transform(
+        osc_transform = sr_tools.openscenario_parser.OpenScenarioParser.convert_position_to_transform(
             self._osc_position)
 
         if osc_transform is not None:
@@ -176,10 +172,7 @@ class InTimeToArrivalToOSCPosition(AtomicCondition):
 
         if self._along_route:
             # Get the global route planner, used to calculate the route
-            dao = GlobalRoutePlannerDAO(self._map, 0.5)
-            grp = GlobalRoutePlanner(dao)
-            grp.setup()
-            self._grp = grp
+            self._grp = GlobalRoutePlanner(self._map, 0.5)
         else:
             self._grp = None
 
@@ -195,7 +188,7 @@ class InTimeToArrivalToOSCPosition(AtomicCondition):
 
         # calculate transform with method in openscenario_parser.py
         try:
-            osc_transform = srunner.tools.openscenario_parser.OpenScenarioParser.convert_position_to_transform(
+            osc_transform = sr_tools.openscenario_parser.OpenScenarioParser.convert_position_to_transform(
                 self._osc_position)
         except AttributeError:
             return py_trees.common.Status.FAILURE
@@ -550,8 +543,8 @@ class InTriggerRegion(AtomicCondition):
         if location is None:
             return new_status
 
-        not_in_region = (location.x < self._min_x or location.x > self._max_x) or (
-            location.y < self._min_y or location.y > self._max_y)
+        not_in_region = (location.x < self._min_x or location.x > self._max_x) or \
+                        (location.y < self._min_y or location.y > self._max_y)
         if not not_in_region:
             new_status = py_trees.common.Status.SUCCESS
 
@@ -571,13 +564,15 @@ class InTriggerDistanceToVehicle(AtomicCondition):
     - reference_actor: Reference CARLA actor
     - name: Name of the condition
     - distance: Trigger distance between the two actors in meters
+    - distance_type: Specifies how distance should be calculated between the two actors
+    - freespace: if True distance is calculated between closest boundary points else it will be from center-center
     - dx, dy, dz: distance to reference_location (location of reference_actor)
 
     The condition terminates with SUCCESS, when the actor reached the target distance to the other actor
     """
 
     def __init__(self, reference_actor, actor, distance, comparison_operator=operator.lt,
-                 name="TriggerDistanceToVehicle"):
+                 distance_type="cartesianDistance", freespace=False, name="TriggerDistanceToVehicle"):
         """
         Setup trigger distance
         """
@@ -586,7 +581,14 @@ class InTriggerDistanceToVehicle(AtomicCondition):
         self._reference_actor = reference_actor
         self._actor = actor
         self._distance = distance
+        self._distance_type = distance_type
+        self._freespace = freespace
         self._comparison_operator = comparison_operator
+
+        if distance_type == "longitudinal":
+            self._global_rp = CarlaDataProvider.get_global_route_planner()
+        else:
+            self._global_rp = None
 
     def update(self):
         """
@@ -600,7 +602,10 @@ class InTriggerDistanceToVehicle(AtomicCondition):
         if location is None or reference_location is None:
             return new_status
 
-        if self._comparison_operator(calculate_distance(location, reference_location), self._distance):
+        distance = get_distance_between_actors(
+            self._actor, self._reference_actor, self._distance_type, self._freespace, self._global_rp)
+
+        if self._comparison_operator(distance, self._distance):
             new_status = py_trees.common.Status.SUCCESS
 
         self.logger.debug("%s.update()[%s->%s]" % (self.__class__.__name__, self.status, new_status))
@@ -830,8 +835,8 @@ class InTimeToArrivalToVehicle(AtomicCondition):
 
     _max_time_to_arrival = float('inf')  # time to arrival in seconds
 
-    def __init__(self, actor, other_actor, time, along_route=False,
-                 comparison_operator=operator.lt, name="TimeToArrival"):
+    def __init__(self, actor, other_actor, time, condition_freespace=False,
+                 along_route=False, comparison_operator=operator.lt, name="TimeToArrival"):
         """
         Setup parameters
         """
@@ -841,15 +846,13 @@ class InTimeToArrivalToVehicle(AtomicCondition):
         self._actor = actor
         self._other_actor = other_actor
         self._time = time
+        self._condition_freespace = condition_freespace
         self._along_route = along_route
         self._comparison_operator = comparison_operator
 
         if self._along_route:
             # Get the global route planner, used to calculate the route
-            dao = GlobalRoutePlannerDAO(self._map, 0.5)
-            grp = GlobalRoutePlanner(dao)
-            grp.setup()
-            self._grp = grp
+            self._grp = GlobalRoutePlanner(self._map, 0.5)
         else:
             self._grp = None
 
@@ -861,6 +864,20 @@ class InTimeToArrivalToVehicle(AtomicCondition):
 
         current_location = CarlaDataProvider.get_location(self._actor)
         other_location = CarlaDataProvider.get_location(self._other_actor)
+
+        # Get the bounding boxes
+        if self._condition_freespace:
+            if isinstance(self._actor, (carla.Vehicle, carla.Walker)):
+                actor_extent = self._actor.bounding_box.extent.x
+            else:
+                # Patch, as currently static objects have no bounding boxes
+                actor_extent = 0
+
+            if isinstance(self._other_actor, (carla.Vehicle, carla.Walker)):
+                other_extent = self._other_actor.bounding_box.extent.x
+            else:
+                # Patch, as currently static objects have no bounding boxes
+                other_extent = 0
 
         if current_location is None or other_location is None:
             return new_status
@@ -879,7 +896,10 @@ class InTimeToArrivalToVehicle(AtomicCondition):
         time_to_arrival = self._max_time_to_arrival
 
         if current_velocity > other_velocity:
-            time_to_arrival = 2 * distance / (current_velocity - other_velocity)
+            if self._condition_freespace:
+                time_to_arrival = (distance - actor_extent - other_extent) / (current_velocity - other_velocity)
+            else:
+                time_to_arrival = distance / (current_velocity - other_velocity)
 
         if self._comparison_operator(time_to_arrival, self._time):
             new_status = py_trees.common.Status.SUCCESS
@@ -1022,9 +1042,8 @@ class WaitUntilInFront(AtomicCondition):
         # Wait for the vehicle to be in front
         other_dir = other_next_waypoint.transform.get_forward_vector()
         act_other_dir = actor_location - other_next_waypoint.transform.location
-        dot_ve_wp = other_dir.x * act_other_dir.x + other_dir.y * act_other_dir.y + other_dir.z * act_other_dir.z
 
-        if dot_ve_wp > 0.0:
+        if other_dir.dot(act_other_dir) > 0.0:
             in_front = True
 
         # Wait for it to be close-by
@@ -1032,6 +1051,57 @@ class WaitUntilInFront(AtomicCondition):
             close_by = True
         elif actor_location.distance(other_next_waypoint.transform.location) < self._distance:
             close_by = True
+
+        if in_front and close_by:
+            new_status = py_trees.common.Status.SUCCESS
+
+        return new_status
+
+
+class WaitUntilInFrontPosition(AtomicCondition):
+
+    """
+    Behavior that support the creation of cut ins. It waits until the actor has passed another actor
+
+    Parameters:
+    - actor: the one getting in front of the other actor
+    - transform: the reference transform that the actor will have to get in front of
+    """
+
+    def __init__(self, actor, transform, check_distance=True, distance=10, name="WaitUntilInFrontPosition"):
+        """
+        Init
+        """
+        super().__init__(name)
+
+        self._actor = actor
+        self._ref_transform = transform
+        self._ref_location = transform.location
+        self._ref_vector = transform.get_forward_vector()
+        self._check_distance = check_distance
+        self._distance = distance
+
+        self.logger.debug("%s.__init__()" % (self.__class__.__name__))
+
+    def update(self):
+        """
+        Checks if the two actors meet the requirements
+        """
+        new_status = py_trees.common.Status.RUNNING
+
+        # Is the actor in front?
+        location = CarlaDataProvider.get_location(self._actor)
+        if location is None:
+            return new_status
+
+        actor_dir = location - self._ref_location
+        in_front = actor_dir.dot(self._ref_vector) > 0.0
+
+        # Is the actor close-by?
+        if not self._check_distance or location.distance(self._ref_location) < self._distance:
+            close_by = True
+        else:
+            close_by = False
 
         if in_front and close_by:
             new_status = py_trees.common.Status.SUCCESS
@@ -1071,6 +1141,9 @@ class DriveDistance(AtomicCondition):
         Check driven distance
         """
         new_status = py_trees.common.Status.RUNNING
+
+        if self._location is None:
+            return new_status
 
         new_location = CarlaDataProvider.get_location(self._actor)
         self._distance += calculate_distance(self._location, new_location)
@@ -1168,14 +1241,16 @@ class WaitEndIntersection(AtomicCondition):
 
     """
     Atomic behavior that waits until the vehicles has gone outside the junction.
-    If currently inside no intersection, it will wait until one is found
+    If currently inside no intersection, it will wait until one is found.
+    If 'junction_id' is given, it will wait until that specific junction has finished
     """
 
-    def __init__(self, actor, debug=False, name="WaitEndIntersection"):
+    def __init__(self, actor, junction_id=None, debug=False, name="WaitEndIntersection"):
         super(WaitEndIntersection, self).__init__(name)
         self.actor = actor
         self.debug = debug
-        self.inside_junction = False
+        self._junction_id = junction_id
+        self._inside_junction = False
         self.logger.debug("%s.__init__()" % (self.__class__.__name__))
 
     def update(self):
@@ -1185,12 +1260,16 @@ class WaitEndIntersection(AtomicCondition):
         location = CarlaDataProvider.get_location(self.actor)
         waypoint = CarlaDataProvider.get_map().get_waypoint(location)
 
-        # Wait for the actor to enter a junction
-        if not self.inside_junction and waypoint.is_junction:
-            self.inside_junction = True
+        # Wait for the actor to enter a / the junction
+        if not self._inside_junction:
+            junction = waypoint.get_junction()
+            if not junction:
+                return new_status
+            if not self._junction_id or junction.id == self._junction_id:
+                self._inside_junction = True
 
         # And to leave it
-        if self.inside_junction and not waypoint.is_junction:
+        elif self._inside_junction and not waypoint.is_junction:
             if self.debug:
                 print("--- Leaving the junction")
             new_status = py_trees.common.Status.SUCCESS
@@ -1228,6 +1307,31 @@ class WaitForBlackboardVariable(AtomicCondition):
         if value == self._variable_value:
             if self._debug:
                 print("Blackboard variable {} set to True".format(self._variable_name))
+            new_status = py_trees.common.Status.SUCCESS
+
+        return new_status
+
+
+class CheckParameter(AtomicCondition):
+    """
+    Atomic behavior that keeps checking global osc parameter value with the given value.
+    The condition terminates with SUCCESS, when the comparison_operator is evaluated successfully.
+    """
+
+    def __init__(self, parameter_ref, value, comparison_operator, debug=False, name="CheckParameter"):
+        super(CheckParameter, self).__init__(name)
+        self._parameter_ref = parameter_ref
+        self._value = value
+        self._comparison_operator = comparison_operator
+        self._debug = debug
+
+    def update(self):
+        """
+        keeps comparing global osc value with given value till it is successful.
+        """
+        new_status = py_trees.common.Status.RUNNING
+        current_value = CarlaDataProvider.get_osc_global_param_value(self._parameter_ref)
+        if self._comparison_operator(current_value, self._value):
             new_status = py_trees.common.Status.SUCCESS
 
         return new_status

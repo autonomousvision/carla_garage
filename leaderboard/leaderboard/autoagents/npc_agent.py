@@ -33,7 +33,6 @@ class NpcAgent(AutonomousAgent):
         """
         self.track = Track.SENSORS
 
-        self._route_assigned = False
         self._agent = None
 
     def sensors(self):
@@ -63,44 +62,34 @@ class NpcAgent(AutonomousAgent):
 
     def run_step(self, input_data, timestamp):
         """
-        Execute one step of navigation.
+        Execute one step of navigation. 
         """
-        control = carla.VehicleControl()
-        control.steer = 0.0
-        control.throttle = 0.0
-        control.brake = 0.0
-        control.hand_brake = False
-
         if not self._agent:
+
+            # Search for the ego actor
             hero_actor = None
             for actor in CarlaDataProvider.get_world().get_actors():
                 if 'role_name' in actor.attributes and actor.attributes['role_name'] == 'hero':
                     hero_actor = actor
                     break
-            if hero_actor:
-                self._agent = BasicAgent(hero_actor)
 
-            return control
+            if not hero_actor:
+                return carla.VehicleControl()
 
-        if not self._route_assigned:
-            if self._global_plan:
-                plan = []
+            # Add an agent that follows the route to the ego
+            self._agent = BasicAgent(hero_actor, 30)
 
-                prev = None
-                for transform, _ in self._global_plan_world_coord:
-                    wp = CarlaDataProvider.get_map().get_waypoint(transform.location)
-                    if  prev:
-                        route_segment = self._agent._trace_route(prev, wp)
-                        plan.extend(route_segment)
+            plan = []
+            prev_wp = None
+            for transform, _ in self._global_plan_world_coord:
+                wp = CarlaDataProvider.get_map().get_waypoint(transform.location)
+                if prev_wp:
+                    plan.extend(self._agent.trace_route(prev_wp, wp))
+                prev_wp = wp
 
-                    prev = wp
+            self._agent.set_global_plan(plan)
 
-                #loc = plan[-1][0].transform.location
-                #self._agent.set_destination([loc.x, loc.y, loc.z])
-                self._agent._local_planner.set_global_plan(plan)  # pylint: disable=protected-access
-                self._route_assigned = True
+            return carla.VehicleControl()
 
         else:
-            control = self._agent.run_step()
-
-        return control
+            return self._agent.run_step()

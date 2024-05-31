@@ -21,7 +21,7 @@ import carla
 from srunner.scenarioconfigs.scenario_configuration import ActorConfigurationData, ScenarioConfiguration
 # pylint: enable=line-too-long
 from srunner.scenariomanager.carla_data_provider import CarlaDataProvider  # workaround
-from srunner.tools.openscenario_parser import OpenScenarioParser
+from srunner.tools.openscenario_parser import OpenScenarioParser, ParameterRef
 
 
 class OpenScenarioConfiguration(ScenarioConfiguration):
@@ -31,10 +31,13 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
     - Only one Story + Init is supported per Storyboard
     """
 
-    def __init__(self, filename, client):
+    def __init__(self, filename, client, custom_params):
+
+        super(OpenScenarioConfiguration, self).__init__()
 
         self.xml_tree = ET.parse(filename)
-        self._filename = filename
+        self.filename = filename
+        self._custom_params = custom_params if custom_params is not None else {}
 
         self._validate_openscenario_configuration()
         self.client = client
@@ -47,7 +50,7 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
         self.weather = carla.WeatherParameters()
 
         self.storyboard = self.xml_tree.find("Storyboard")
-        self.story = self.storyboard.find("Story")
+        self.stories = self.storyboard.findall("Story")
         self.init = self.storyboard.find("Init")
 
         logging.basicConfig()
@@ -60,7 +63,7 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
 
     def _validate_openscenario_configuration(self):
         """
-        Validate the given OpenSCENARIO config against the 0.9.1 XSD
+        Validate the given OpenSCENARIO config against the 1.0 XSD
 
         Note: This will throw if the config is not valid. But this is fine here.
         """
@@ -70,7 +73,7 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
 
     def _validate_openscenario_catalog_configuration(self, catalog_xml_tree):
         """
-        Validate the given OpenSCENARIO catalog config against the 0.9.1 XSD
+        Validate the given OpenSCENARIO catalog config against the 1.0 XSD
 
         Note: This will throw if the catalog config is not valid. But this is fine here.
         """
@@ -82,7 +85,7 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
         """
         Parse the given OpenSCENARIO config file, set and validate parameters
         """
-        OpenScenarioParser.set_osc_filepath(os.path.dirname(self._filename))
+        OpenScenarioParser.set_osc_filepath(os.path.dirname(self.filename))
 
         self._check_version()
         self._load_catalogs()
@@ -124,8 +127,8 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
                 continue
 
             catalog_path = catalog.find("Directory").attrib.get('path') + "/" + catalog_type + "Catalog.xosc"
-            if not os.path.isabs(catalog_path) and "xosc" in self._filename:
-                catalog_path = os.path.dirname(os.path.abspath(self._filename)) + "/" + catalog_path
+            if not os.path.isabs(catalog_path) and "xosc" in self.filename:
+                catalog_path = os.path.dirname(os.path.abspath(self.filename)) + "/" + catalog_path
 
             if not os.path.isfile(catalog_path):
                 self.logger.warning(" The %s path for the %s Catalog is invalid", catalog_path, catalog_type)
@@ -146,6 +149,7 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
         self.name = header.attrib.get('description', 'Unknown')
 
         if self.name.startswith("CARLA:"):
+            self.name = self.name[6:]
             OpenScenarioParser.set_use_carla_coordinate_system()
 
     def _set_carla_town(self):
@@ -160,23 +164,53 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
 
         if self.town is not None and ".xodr" in self.town:
             if not os.path.isabs(self.town):
-                self.town = os.path.dirname(os.path.abspath(self._filename)) + "/" + self.town
+                self.town = os.path.dirname(os.path.abspath(self.filename)) + "/" + self.town
             if not os.path.exists(self.town):
                 raise AttributeError("The provided RoadNetwork '{}' does not exist".format(self.town))
 
         # workaround for relative positions during init
         world = self.client.get_world()
-        if world is None or world.get_map().name != self.town:
-            self.logger.warning(" Wrong OpenDRIVE map in use. Forcing reload of CARLA world")
+        wmap = None
+        if world:
+            world.get_settings()
+            wmap = world.get_map()
+
+        if world is None or (wmap is not None and wmap.name.split('/')[-1] != self.town):
             if ".xodr" in self.town:
-                with open(self.town) as od_file:
+                with open(self.town, 'r', encoding='utf-8') as od_file:
                     data = od_file.read()
-                self.client.generate_opendrive_world(str(data))
+                index = data.find('<OpenDRIVE>')
+                data = data[index:]
+
+                old_map = ""
+                if wmap is not None:
+                    old_map = wmap.to_opendrive()
+                    index = old_map.find('<OpenDRIVE>')
+                    old_map = old_map[index:]
+
+                if data != old_map:
+                    self.logger.warning(" Wrong OpenDRIVE map in use. Forcing reload of CARLA world")
+
+                    vertex_distance = 2.0  # in meters
+                    wall_height = 1.0      # in meters
+                    extra_width = 0.6      # in meters
+                    world = self.client.generate_opendrive_world(str(data),
+                                                                 carla.OpendriveGenerationParameters(
+                                                                 vertex_distance=vertex_distance,
+                                                                 wall_height=wall_height,
+                                                                 additional_width=extra_width,
+                                                                 smooth_junctions=True,
+                                                                 enable_mesh_visibility=True))
             else:
+                self.logger.warning(" Wrong map in use. Forcing reload of CARLA world")
                 self.client.load_world(self.town)
-            world = self.client.get_world()
+                world = self.client.get_world()
+
             CarlaDataProvider.set_world(world)
-            world.wait_for_tick()
+            if CarlaDataProvider.is_sync_mode():
+                world.tick()
+            else:
+                world.wait_for_tick()
         else:
             CarlaDataProvider.set_world(world)
 
@@ -187,8 +221,7 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
 
         Set _global_parameters.
         """
-
-        self.xml_tree, self._global_parameters = OpenScenarioParser.set_parameters(self.xml_tree)
+        self.xml_tree, self._global_parameters = OpenScenarioParser.set_parameters(self.xml_tree, self._custom_params)
 
         for elem in self.xml_tree.iter():
             if elem.find('ParameterDeclarations') is not None:
@@ -205,7 +238,7 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
         for entity in self.xml_tree.iter("Entities"):
             for obj in entity.iter("ScenarioObject"):
                 rolename = obj.attrib.get('name', 'simulation')
-                args = dict()
+                args = {}
                 for prop in obj.iter("Property"):
                     key = prop.get('name')
                     value = prop.get('value')
@@ -220,7 +253,7 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
                     elif entry.tag == "MiscObject":
                         self._extract_misc_information(entry, rolename, entry, args)
                     else:
-                        self.logger.error(
+                        self.logger.debug(
                             " A CatalogReference specifies a reference that is not an Entity. Skipping...")
 
                 for vehicle in obj.iter("Vehicle"):
@@ -249,6 +282,8 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
                                     if ref_actor.transform is not None:
                                         raise e
                                     break
+                        else:
+                            raise e
                     if actor.transform is None:
                         all_actor_transforms_set = False
 
@@ -359,7 +394,7 @@ class OpenScenarioConfiguration(ScenarioConfiguration):
                     for speed in longitudinal_action.iter('SpeedAction'):
                         for target in speed.iter('SpeedActionTarget'):
                             for absolute in target.iter('AbsoluteTargetSpeed'):
-                                speed = float(absolute.attrib.get('value', 0))
+                                speed = float(ParameterRef(absolute.attrib.get('value', 0)))
                                 if speed >= 0:
                                     actor_speed = speed
                                 else:
