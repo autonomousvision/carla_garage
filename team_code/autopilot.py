@@ -687,8 +687,8 @@ class AutoPilot(autonomous_agent_local.AutonomousAgent):
     if not plant:
       for i, elem in enumerate(zip(bounding_boxes_front, bounding_boxes_back)):
         bounding_box, bounding_box_back = elem
-        i_stuck = i
         for vehicle_id, traffic_participant in nearby_vehicles.items():
+          i_stuck = i
           if not self.junction and (i > number_of_future_frames_no_junction):
             break
           if vehicle_id in tmp_stucked_vehicle_id:
