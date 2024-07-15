@@ -94,6 +94,27 @@ We also thank the creators of the numerous pip libraries we use. Complex project
 
 This project is licensed under the MIT License.
 
+## Citation
+If you find CARLA garage and PDM-Lite useful, please consider giving us a star &#127775; and citing our paper and report with the following BibTeX entries.
+
+```BibTeX
+@InProceedings{Jaeger2023ICCV,
+  title={Hidden Biases of End-to-End Driving Models},
+  author={Bernhard Jaeger and Kashyap Chitta and Andreas Geiger},
+  booktitle={Proc. of the IEEE International Conf. on Computer Vision (ICCV)},
+  year={2023}
+}
+```
+
+```BibTeX
+@misc{contributors2024pdmlite,
+  title        = {{PDM-Lite}: A Rule-Based Planner for CARLA Leaderboard 2.0},
+  author       = {Bei{\ss}wenger, Jens},
+  howpublished = {\url{https://github.com/autonomousvision/carla_garage/blob/leaderboard_2/doc/report.pdf}},
+  year         = {2024}
+}
+```
+
 ## Contributing
 
 Contributions to PDM-Lite are welcome! If you find any issues or have suggestions for improvements, please open an issue.
