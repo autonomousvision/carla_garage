@@ -107,11 +107,12 @@ If you find CARLA garage and PDM-Lite useful, please consider giving us a star &
 ```
 
 ```BibTeX
-@misc{contributors2024pdmlite,
+@misc{Beißwenger2024PdmLite,
   title        = {{PDM-Lite}: A Rule-Based Planner for CARLA Leaderboard 2.0},
   author       = {Bei{\ss}wenger, Jens},
-  howpublished = {\url{https://github.com/autonomousvision/carla_garage/blob/leaderboard_2/doc/report.pdf}},
-  year         = {2024}
+  howpublished = {\url{https://github.com/OpenDriveLab/DriveLM/blob/DriveLM-CARLA/docs/report.pdf}},
+  year         = {2024},
+  school       = {University of Tübingen},
 }
 ```
 
