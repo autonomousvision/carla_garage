@@ -408,7 +408,7 @@ def bb_image_to_vehicle_system(box, pixels_per_meter, min_x, min_y):
 
 def non_maximum_suppression(bounding_boxes, iou_treshhold):
   filtered_boxes = []
-  bounding_boxes = np.array(list(itertools.chain.from_iterable(bounding_boxes)), dtype=np.object)
+  bounding_boxes = np.array(list(itertools.chain.from_iterable(bounding_boxes)), dtype=object)
 
   if bounding_boxes.size == 0:  #If no bounding boxes are detected can't do NMS
     return filtered_boxes
