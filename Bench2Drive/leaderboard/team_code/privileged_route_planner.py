@@ -312,10 +312,11 @@ class PrivilegedRoutePlanner(object):
             shift_vector = self.route_points[idx + 1, :2] - self.route_points[idx, :2]
             shift_vector = np.array([[0, -1], [1, 0]]) @ shift_vector
 
-            # Adjust the lateral offset if the route cannot be shifted due to a fence
+            # Adjust the lateral offset if the route cannot be shifted due to a fence. The fence may
+            # border a Shoulder *or* a Parking lane, so apply the avoidance margin for both.
             adjusted_offset = lateral_offset
             right_lane = self.route_waypoints[idx].get_right_lane()
-            if right_lane is not None and right_lane.lane_type == carla.LaneType.Shoulder:
+            if right_lane is not None and right_lane.lane_type in (carla.LaneType.Shoulder, carla.LaneType.Parking):
                 adjusted_offset = min(
                     lateral_offset - np.sign(lateral_offset) * self.fence_avoidance_margin_invading_turn,
                     right_lane.lane_width)
