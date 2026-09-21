@@ -4,10 +4,10 @@
         <a href="https://arxiv.org/abs/2306.07957.pdf"> Paper</a> | <a href="https://youtu.be/ChrPW8RdqQU">Video</a> | <a href="https://youtu.be/x_42Fji1Z2M?t=1073">Talk</a> | <a href="https://www.cvlibs.net/shared/common_misconceptions.pdf"> Slides</a> | <a href="https://github.com/autonomousvision/carla_garage/tree/main/assets/Jaeger2023ICCV_Poster.pdf">Poster</a>
   </h3>
 </p>
-    
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/hidden-biases-of-end-to-end-driving-models/carla-longest6-on-carla)](https://paperswithcode.com/sota/carla-longest6-on-carla?p=hidden-biases-of-end-to-end-driving-models)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/hidden-biases-of-end-to-end-driving-models/autonomous-driving-on-carla-leaderboard)](https://paperswithcode.com/sota/autonomous-driving-on-carla-leaderboard?p=hidden-biases-of-end-to-end-driving-models)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/hidden-biases-of-end-to-end-driving-models/carla-leaderboard-2-0-on-carla)](https://paperswithcode.com/sota/carla-leaderboard-2-0-on-carla?p=hidden-biases-of-end-to-end-driving-models)
+
+[![Papers with Code: CARLA Longest6](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge.svg?eval=17671&live=1)](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge-link?eval=17671)
+[![Papers with Code: CARLA Longest6 (Privileged)](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge.svg?eval=30890&live=1)](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge-link?eval=30890)
+[![Papers with Code: CARLA Leaderboard](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge.svg?eval=17659&live=1)](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge-link?eval=17659)
 
 > [**Hidden Biases of End-to-End Driving Models**](https://arxiv.org/abs/2306.07957) <br>
 > [Bernhard Jaeger](https://kait0.github.io/), [Kashyap Chitta](https://kashyap7x.github.io/), [Andreas Geiger](https://www.cvlibs.net/) <br>
