@@ -9,8 +9,9 @@
 <b> A starter kit for the <a href="https://leaderboard.carla.org/">CARLA leaderboard 2.0</a> </b>
 </p>
 
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/hidden-biases-of-end-to-end-driving-models/carla-leaderboard-2-0-on-carla)](https://paperswithcode.com/sota/carla-leaderboard-2-0-on-carla?p=hidden-biases-of-end-to-end-driving-models)
-[![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/hidden-biases-of-end-to-end-driving-models/bench2drive-on-bench2drive)](https://paperswithcode.com/sota/bench2drive-on-bench2drive?p=hidden-biases-of-end-to-end-driving-models)
+[![Papers with Code: CARLA Longest6](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge.svg?eval=17671&live=1)](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge-link?eval=17671)
+[![Papers with Code: CARLA Longest6 (Privileged)](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge.svg?eval=30890&live=1)](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge-link?eval=30890)
+[![Papers with Code: CARLA Leaderboard](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge.svg?eval=17659&live=1)](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge-link?eval=17659)
 
 
 <p align="center" style="font-size:20px;">
