@@ -695,7 +695,7 @@ class PrivilegedRoutePlanner(object):
             return wp_list
 
         # Initialize arrays to store distances and next stop signs
-        self.distances_to_next_stop_signs = np.full(self.route_points.shape[0], np.inf, dtype=np.float)
+        self.distances_to_next_stop_signs = np.full(self.route_points.shape[0], np.inf, dtype=float)
         self.next_stop_signs = [None] * self.route_points.shape[0]
 
         # Get list of all stop signs
@@ -760,7 +760,7 @@ class PrivilegedRoutePlanner(object):
         tree = cKDTree(map_locations)
 
         # Initialize array to store speed limits
-        self.speed_limits = np.empty(self.route_points.shape[0], dtype=np.float)
+        self.speed_limits = np.empty(self.route_points.shape[0], dtype=float)
         previous_speed_limit = -1
 
         # Iterate through route locations

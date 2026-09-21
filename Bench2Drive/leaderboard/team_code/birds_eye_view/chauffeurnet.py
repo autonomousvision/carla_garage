@@ -135,10 +135,10 @@ class ObsManager(ObsManagerBase):
     ev_rot = ev_transform.rotation
     m_warp = self._get_warp_transform(ev_loc, ev_rot)
     # road_mask, lane_mask
-    road_mask = cv.warpAffine(self._road, m_warp, (self._width, self._width)).astype(np.bool)
-    lane_mask_all = cv.warpAffine(self._lane_marking_all, m_warp, (self._width, self._width)).astype(np.bool)
+    road_mask = cv.warpAffine(self._road, m_warp, (self._width, self._width)).astype(bool)
+    lane_mask_all = cv.warpAffine(self._lane_marking_all, m_warp, (self._width, self._width)).astype(bool)
     lane_mask_broken = cv.warpAffine(self._lane_marking_white_broken, m_warp,
-                                     (self._width, self._width)).astype(np.bool)
+                                     (self._width, self._width)).astype(bool)
     image = np.zeros([self._width, self._width, 4], dtype=np.float32)
     alpha = 0.33
     image[road_mask] = (40, 40, 40, 0.1)
@@ -220,11 +220,11 @@ class ObsManager(ObsManagerBase):
         = self._get_history_masks(m_warp)
 
     # road_mask, lane_mask
-    road_mask = cv.warpAffine(self._road, m_warp, (self._width, self._width)).astype(np.bool)
-    sidewalk_mask = cv.warpAffine(self._sidewalk, m_warp, (self._width, self._width)).astype(np.bool)
-    lane_mask_all = cv.warpAffine(self._lane_marking_all, m_warp, (self._width, self._width)).astype(np.bool)
+    road_mask = cv.warpAffine(self._road, m_warp, (self._width, self._width)).astype(bool)
+    sidewalk_mask = cv.warpAffine(self._sidewalk, m_warp, (self._width, self._width)).astype(bool)
+    lane_mask_all = cv.warpAffine(self._lane_marking_all, m_warp, (self._width, self._width)).astype(bool)
     lane_mask_broken = cv.warpAffine(self._lane_marking_white_broken, m_warp,
-                                     (self._width, self._width)).astype(np.bool)
+                                     (self._width, self._width)).astype(bool)
 
     # render
     if self.visualize:
@@ -300,10 +300,10 @@ class ObsManager(ObsManagerBase):
       stopline_in_pixel = np.array([[self._world_to_pixel(x)] for x in sp_locs])
       stopline_warped = cv.transform(stopline_in_pixel, m_warp)
       # Rounding to pixel coordinates is required by newer opencv versions
-      pt1 = (stopline_warped[0, 0] + 0.5).astype(np.int)
-      pt2 = (stopline_warped[1, 0] + 0.5).astype(np.int)
+      pt1 = (stopline_warped[0, 0] + 0.5).astype(int)
+      pt2 = (stopline_warped[1, 0] + 0.5).astype(int)
       cv.line(mask, tuple(pt1), tuple(pt2), color=1, thickness=6)
-    return mask.astype(np.bool)
+    return mask.astype(bool)
 
   def _get_mask_from_actor_list(self, actor_list, m_warp):
     mask = np.zeros([self._width, self._width], dtype=np.uint8)
@@ -323,7 +323,7 @@ class ObsManager(ObsManagerBase):
       corners_warped = cv.transform(corners_in_pixel, m_warp)
 
       cv.fillConvexPoly(mask, np.round(corners_warped).astype(np.int32), 1)
-    return mask.astype(np.bool)
+    return mask.astype(bool)
 
   @staticmethod
   def _get_surrounding_actors(bbox_list, criterium, scale=None):
