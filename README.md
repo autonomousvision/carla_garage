@@ -12,6 +12,7 @@
 [![Papers with Code: CARLA Longest6](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge.svg?eval=17671&live=1)](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge-link?eval=17671)
 [![Papers with Code: CARLA Longest6 (Privileged)](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge.svg?eval=30890&live=1)](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge-link?eval=30890)
 [![Papers with Code: CARLA Leaderboard](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge.svg?eval=17659&live=1)](https://paperswithcode.co/api/v1/papers/2306.07957/leaderboard-badge-link?eval=17659)
+[![Papers with Code: CARLA Leaderboard](https://paperswithcode.co/api/v1/papers/2412.09602/leaderboard-badge.svg?eval=17759&live=1)](https://paperswithcode.co/api/v1/papers/2412.09602/leaderboard-badge-link?eval=17759)
 
 
 <p align="center" style="font-size:20px;">
